@@ -43,7 +43,7 @@ function main() {
       case 'summary': result = summaryCommand(args, cwd); break;
       case 'web': {
         const server = require('./web/server');
-        return server.start(args.port || 3000, cwd);
+        return server.start(args.port || 23214, cwd);
       }
       default: result = { ok: false, error: 'Unknown entity: ' + entity };
     }

@@ -54,6 +54,8 @@ function start(port, cwd) {
     console.log(JSON.stringify({
       ok: true,
       url: 'http://localhost:' + port,
+      cwd: cwd,
+      dataDir: path.join(cwd, '.openpm'),
       message: 'OpenPM dashboard running',
     }));
   });
