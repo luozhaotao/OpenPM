@@ -20,6 +20,11 @@ metadata:
 - Sprint 结束：关闭迭代，生成小结
 - 用户询问项目状态："现在进度如何"、"还有多少任务没做"
 
+## 核心约束
+
+- **只用 CLI，不碰文件**：创建/修改任何实体必须通过 `node openpm/scripts/cli.js` 命令。`templates/` 目录仅供参考字段含义，禁止直接复制。
+- **先启 Web，再操数据**：任何数据操作之前，先启动 `openpm web`。
+
 ## 数据模型速查
 
 | 实体 | 目录 | 状态流转 |
@@ -37,6 +42,21 @@ Sprint 字段：`id`, `name`, `goal`, `status`, `start_date`, `end_date`
 ## 命令参考
 
 默认输出 JSON。添加 `--format markdown` 获取人类可读输出。
+
+### 调用方式
+
+所有命令通过 Node.js 脚本执行：
+
+```bash
+node openpm/scripts/cli.js <entity> <action> [--flags]
+```
+
+示例：
+```bash
+node openpm/scripts/cli.js init
+node openpm/scripts/cli.js task create --title "登录功能" --status todo
+node openpm/scripts/cli.js web --port 23214
+```
 
 ### 初始化
 
@@ -88,11 +108,15 @@ openpm web [--port 23214]
 
 ### Sprint Planning
 
+> ⚠️ 先确保 `openpm web` 已运行
+
 1. 创建 Sprint：`openpm sprint create --name "Sprint 2" --goal "..." --start ... --end ...`
 2. 批量创建任务（每个任务一条命令）
 3. 激活 Sprint：`openpm sprint start --id sprint-2`
 
 ### 每日开发
+
+> ⚠️ 先确保 `openpm web` 已运行
 
 1. 看待办：`openpm task list --sprint sprint-2 --status todo`
 2. 读 AC：`openpm task show <task-id>`
@@ -102,9 +126,32 @@ openpm web [--port 23214]
 
 ### Sprint 闭合
 
+> ⚠️ 先确保 `openpm web` 已运行
+
 1. 检查遗漏：`openpm task list --sprint sprint-2 --status todo`
 2. 关闭：`openpm sprint close sprint-2`（未完成任务自动移入下个 Sprint）
 3. 查看小结：`openpm summary --sprint sprint-2`
+
+## 工程实践
+
+### 执行原则
+
+- **DoD（完成定义）**：任务标记 `done` 前，AC 全部满足、依赖项已闭合、无遗留代码注释。详见 [dod-checklist.md](docs/pm-practices/dod-checklist.md)
+- **任务粒度**：单个 Task 应在 1 天内可完成。超过则拆分为子任务。详见 [invest.md](docs/pm-practices/invest.md)
+- **Sprint 容量**：每 Sprint 5-12 个 Task，按优先级排列，高优先级优先入 Sprint。详见 [scrum.md](docs/pm-practices/scrum.md)
+- **依赖最小化**：Task 间 `depends_on` 不超过 2 个前置。长依赖链说明拆分不合理
+- **AC 写法**：验收标准用可验证的陈述句，每条独立、可测试。如"输入正确密码后跳转首页"而非"登录正常"
+- **每个 commit 应对应一个 Task**：commit message 中包含 Task ID（如 `feat(task-003): 实现登录表单校验`）。详见 [conventional-commits.md](docs/pm-practices/conventional-commits.md)
+
+### 参考规范
+
+| 文档 | 路径 |
+|------|------|
+| Scrum 框架 | [scrum.md](docs/pm-practices/scrum.md) |
+| 敏捷宣言与原则 | [agile-principles.md](docs/pm-practices/agile-principles.md) |
+| Conventional Commits | [conventional-commits.md](docs/pm-practices/conventional-commits.md) |
+| INVEST 原则 | [invest.md](docs/pm-practices/invest.md) |
+| DoD 检查清单 | [dod-checklist.md](docs/pm-practices/dod-checklist.md) |
 
 ## 规则
 
