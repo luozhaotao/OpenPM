@@ -4,7 +4,7 @@ const path = require('path');
 // 解析 Markdown 文件：分离 frontmatter 和 body
 function parseMarkdown(filePath) {
   const content = fs.readFileSync(filePath, 'utf-8');
-  const match = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)?$/);
+  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)?$/);
   if (!match) throw new Error(`Invalid frontmatter in ${filePath}`);
   const frontmatter = parseYaml(match[1]);
   const body = (match[2] || '').trim();
@@ -51,11 +51,11 @@ function serializeYaml(obj) {
     if (Array.isArray(v)) {
       lines.push(`${k}:`);
       for (const item of v) {
-        if (typeof item === 'string') lines.push(`  - "${item}"`);
+        if (typeof item === 'string') lines.push(`  - "${item.replace(/"/g, '\\"')}"`);
         else lines.push(`  - ${item}`);
       }
     } else if (typeof v === 'string') {
-      lines.push(`${k}: "${v}"`);
+      lines.push(`${k}: "${v.replace(/"/g, '\\"')}"`);
     } else {
       lines.push(`${k}: ${v}`);
     }
