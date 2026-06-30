@@ -35,6 +35,9 @@ async function navigate(page) {
     container.innerHTML = temp.innerHTML;
     scripts.forEach(function(s) {
       var ns = document.createElement('script');
+      for (var i = 0; i < s.attributes.length; i++) {
+        ns.setAttribute(s.attributes[i].name, s.attributes[i].value);
+      }
       ns.textContent = s.textContent;
       container.appendChild(ns);
     });
