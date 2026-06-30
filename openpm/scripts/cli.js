@@ -25,7 +25,7 @@ function main() {
   const args = parseArgs(process.argv);
   const entity = args._[0];
   const action = args._[1];
-  const cwd = args.project || process.cwd();
+  const cwd = typeof args.project === 'string' ? args.project : process.cwd();
   const format = args.format || 'json';
   let result;
   // Map positional args: openpm task update <id> -> args.id
