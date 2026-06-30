@@ -26,7 +26,18 @@ async function navigate(page) {
   try {
     var resp = await fetch(pages[page].file);
     var html = await resp.text();
-    document.getElementById('page-content').innerHTML = html;
+    // innerHTML 不执行 <script>，手动提取并动态创建执行
+    var container = document.getElementById('page-content');
+    var temp = document.createElement('div');
+    temp.innerHTML = html;
+    var scripts = temp.querySelectorAll('script');
+    scripts.forEach(function(s) { s.remove(); });
+    container.innerHTML = temp.innerHTML;
+    scripts.forEach(function(s) {
+      var ns = document.createElement('script');
+      ns.textContent = s.textContent;
+      container.appendChild(ns);
+    });
     // Trigger page initialization
     if (typeof window.initPage === 'function') window.initPage(page);
     if (typeof window.refreshPage === 'function') {
