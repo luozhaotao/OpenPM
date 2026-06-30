@@ -81,7 +81,7 @@ openpm summary --sprint sprint-1
 ### Web 仪表盘
 
 ```bash
-openpm web [--port 3000]
+openpm web [--port 23214]
 ```
 
 ## 工作流指南
