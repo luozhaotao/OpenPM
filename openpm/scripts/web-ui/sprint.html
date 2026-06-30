@@ -1,0 +1,42 @@
+<style>.progress-bar { width: 120px; height: 6px; background: var(--hover); border-radius: 3px; overflow: hidden; } .progress-fill { height: 100%; border-radius: 3px; background: var(--primary); } .progress-fill.done { background: var(--success); } .sprint-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 14px; } .sprint-item.current { border-color: var(--primary); background: var(--primary-bg); } .sprint-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; } .sprint-dot.active { background: var(--primary); } .sprint-dot.done { background: var(--success); } .sprint-dot.plan { background: var(--text-muted); } .sprint-info { flex: 1; } .sprint-name { font-weight: 600; font-size: 13px; } .sprint-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }</style>
+<div style="padding:20px">
+  <div class="stats" id="sprint-stats"></div>
+  <div style="display:flex;gap:20px">
+    <div style="flex:1"><h2 style="font-size:13px;font-weight:600;margin-bottom:12px">迭代列表</h2><div id="sprint-list"></div></div>
+    <div style="flex:1"><h2 style="font-size:13px;font-weight:600;margin-bottom:12px">Sprint 小结</h2><div id="summary-area"></div></div>
+  </div>
+</div>
+<script>
+async function loadSprint() {
+  var sprints = await api('sprints');
+  var tasks = await api('tasks');
+  var stats = await api('stats');
+  var list = sprints.sprints || [];
+  var html = '';
+  for (var i = 0; i < list.length; i++) {
+    var s = list[i];
+    var cur = s.status === 'active';
+    html += '<div class="sprint-item' + (cur ? ' current' : '') + '">' +
+      '<span class="sprint-dot ' + s.status + '"></span>' +
+      '<div class="sprint-info"><div class="sprint-name">' + s.name + '</div>' +
+      '<div class="sprint-meta">' + s.start_date + ' — ' + s.end_date + ' · ' + (s.goal || '') + '</div></div>' +
+      '<span style="font-size:12px;color:var(--text-secondary)">' + s.status + '</span></div>';
+  }
+  document.getElementById('sprint-list').innerHTML = html || '<p style="color:var(--text-muted)">暂无 Sprint</p>';
+  document.getElementById('sprint-stats').innerHTML =
+    '<div class="stat-card"><div class="stat-label">总任务</div><div class="stat-value">' + (stats.totalTasks || 0) + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">完成</div><div class="stat-value" style="color:var(--success)">' + (stats.completedTasks || 0) + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">进行中</div><div class="stat-value" style="color:var(--primary)">' + (stats.inProgressTasks || 0) + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">活跃 Sprint</div><div class="stat-value" style="font-size:18px">' + (stats.activeSprint ? stats.activeSprint.name : '无') + '</div></div>';
+  // Load summary for current sprint
+  var activeSprint = list.find(function(s) { return s.status === 'active'; });
+  if (activeSprint) {
+    var summary = await api('sprints/' + activeSprint.id + '/summary');
+    document.getElementById('summary-area').innerHTML = summary.ok
+      ? '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px"><p>完成: ' + summary.summary.completed + '/' + summary.summary.total + '</p><pre style="font-size:12px;color:var(--text-secondary);white-space:pre-wrap">' + (summary.summary.details || '') + '</pre></div>'
+      : '<p style="color:var(--text-muted)">尚无小结</p>';
+  }
+}
+window.initPage = function(p) { if (p === 'sprint') loadSprint(); };
+window.refreshPage = function() { if (currentPage === 'sprint') loadSprint(); };
+</script>

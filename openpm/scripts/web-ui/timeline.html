@@ -1,0 +1,37 @@
+<style>.ml-item { display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border-light);align-items:flex-start } .ml-dot { width:12px;height:12px;border-radius:50%;flex-shrink:0;margin-top:2px } .ml-dot.done { background:var(--success) } .ml-dot.upcoming { background:var(--text-muted) } .ml-name { font-weight:600;font-size:13px } .ml-date { font-size:11px;color:var(--text-muted) }</style>
+<div style="padding:20px;display:flex;gap:20px">
+  <div style="flex:1">
+    <h2 style="font-size:13px;font-weight:600;margin-bottom:12px">Sprint 时间线</h2>
+    <div id="sprint-timeline"></div>
+  </div>
+  <div style="flex:1">
+    <h2 style="font-size:13px;font-weight:600;margin-bottom:12px">里程碑</h2>
+    <div id="milestone-list"></div>
+  </div>
+</div>
+<script>
+async function loadTimeline() {
+  var sprints = await api('sprints');
+  var milestones = await api('milestones');
+  var list = sprints.sprints || [];
+  var shtml = '';
+  for (var i = 0; i < list.length; i++) {
+    var s = list[i];
+    shtml += '<div class="sprint-item' + (s.status === 'active' ? ' current' : '') + '" style="margin-bottom:8px">' +
+      '<span class="sprint-dot ' + s.status + '"></span>' +
+      '<div class="sprint-info"><div class="sprint-name">' + s.name + '</div>' +
+      '<div class="sprint-meta">' + s.start_date + ' — ' + s.end_date + ' · ' + (s.goal || '') + '</div></div>' +
+      '<span style="font-size:12px;color:var(--text-secondary)">' + s.status + '</span></div>';
+  }
+  document.getElementById('sprint-timeline').innerHTML = shtml || '<p style="color:var(--text-muted)">暂无 Sprint</p>';
+  var mlist = milestones.milestones || [];
+  var mhtml = '';
+  for (var j = 0; j < mlist.length; j++) {
+    var m = mlist[j];
+    mhtml += '<div class="ml-item"><span class="ml-dot ' + m.status + '"></span><div><div class="ml-name">' + m.name + '</div><div class="ml-date">' + (m.target_date || '') + '</div></div></div>';
+  }
+  document.getElementById('milestone-list').innerHTML = mhtml || '<p style="color:var(--text-muted)">暂无里程碑</p>';
+}
+window.initPage = function(p) { if (p === 'timeline') loadTimeline(); };
+window.refreshPage = function() { if (currentPage === 'timeline') loadTimeline(); };
+</script>
