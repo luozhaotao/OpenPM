@@ -58,6 +58,8 @@ node openpm/scripts/cli.js task create --title "登录功能" --status todo
 node openpm/scripts/cli.js web --port 23214
 ```
 
+> 以下命令参考中 `openpm` 均为 `node openpm/scripts/cli.js` 的简写。
+
 ### 初始化
 
 ```bash
