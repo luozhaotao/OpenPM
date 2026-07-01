@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenPM</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="sidebar">
+  <div class="sidebar-logo" id="sidebar-project" title="OpenPM">OpenPM</div>
+  <div class="sidebar-nav">
+    <a href="#kanban" data-page="kanban"><i class="bi bi-columns-gap"></i> 看板</a>
+    <a href="#sprint" data-page="sprint"><i class="bi bi-graph-up"></i> Sprint</a>
+    <a href="#epic-tree" data-page="epic-tree"><i class="bi bi-diagram-3"></i> Epic 树</a>
+    <a href="#timeline" data-page="timeline"><i class="bi bi-calendar-week"></i> 时间线</a>
+    <a href="#worklog" data-page="worklog"><i class="bi bi-journal-text"></i> 工作日志</a>
+  </div>
+  <div class="sidebar-footer">
+    <div class="sidebar-ai" id="ai-indicator" title="AI 状态"></div>
+    <span id="ai-status-text">检测中...</span>
+  </div>
+</nav>
+<div class="main">
+  <header class="header" id="page-header"></header>
+  <div class="content" id="page-content"></div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
