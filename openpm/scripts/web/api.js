@@ -4,10 +4,10 @@ const epicCommand = require('../commands/epic');
 const milestoneCommand = require('../commands/milestone');
 const logCommand = require('../commands/log');
 const summaryCommand = require('../commands/summary');
+const { readConfig, getOpenpmDir } = require('../lib/config');
 
 function handleApi(pathname, cwd) {
   if (pathname === '/api/config') return () => {
-    const { readConfig, getOpenpmDir } = require('../lib/config');
     const config = readConfig(getOpenpmDir(cwd));
     return { ok: true, cwd, project: config.project };
   };
