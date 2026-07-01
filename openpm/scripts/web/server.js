@@ -2,7 +2,9 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { handleApi } = require('./api');
+const { readConfig } = require('../lib/config');
 
+// 探测端口是否被 OpenPM 服务占用，成功返回 {cwd, project}，失败返回 null
 function probePort(port) {
   return new Promise((resolve) => {
     const req = http.get('http://localhost:' + port + '/api/config', (res) => {
@@ -14,7 +16,7 @@ function probePort(port) {
       });
     });
     req.on('error', () => resolve(null));
-    req.setTimeout(2000, () => { req.destroy(); resolve(null); });
+    req.setTimeout(2000, () => { resolve(null); });
   });
 }
 
@@ -97,7 +99,7 @@ async function start(port, cwd) {
   });
 
   server.listen(port, () => {
-    const config = require('../lib/config').readConfig(path.join(cwd, '.openpm'));
+    const config = readConfig(path.join(cwd, '.openpm'));
     console.log(JSON.stringify({
       ok: true,
       url: 'http://localhost:' + port,
