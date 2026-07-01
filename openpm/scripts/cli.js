@@ -21,7 +21,7 @@ function parseArgs(argv) {
   return args;
 }
 
-function main() {
+async function main() {
   const args = parseArgs(process.argv);
   const entity = args._[0];
   const action = args._[1];
@@ -43,7 +43,7 @@ function main() {
       case 'summary': result = summaryCommand(args, cwd); break;
       case 'web': {
         const server = require('./web/server');
-        return server.start(args.port || 23214, cwd);
+        return await server.start(args.port || 23214, cwd);
       }
       default: result = { ok: false, error: 'Unknown entity: ' + entity };
     }
