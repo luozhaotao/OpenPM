@@ -6,6 +6,11 @@ const logCommand = require('../commands/log');
 const summaryCommand = require('../commands/summary');
 
 function handleApi(pathname, cwd) {
+  if (pathname === '/api/config') return () => {
+    const { readConfig, getOpenpmDir } = require('../lib/config');
+    const config = readConfig(getOpenpmDir(cwd));
+    return { ok: true, cwd, project: config.project };
+  };
   if (pathname === '/api/tasks') return (params) => {
     const args = {};
     if (params.get('sprint')) args.sprint = params.get('sprint');
