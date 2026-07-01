@@ -38,31 +38,34 @@ function sprintCommand(action, args, cwd) {
     }
     case 'show': {
       const fp = path.join(sprintsDir, args.id + '.md');
-      const { frontmatter, body } = parseMarkdown(fp);
-      const tasksDir = path.join(openpmDir, 'tasks');
-      const tasks = readAll(tasksDir).filter(t => t.sprint === args.id);
-      return { ok: true, sprint: Object.assign({}, frontmatter, { body, taskCount: tasks.length }) };
+      try {
+        const { frontmatter, body } = parseMarkdown(fp);
+        const tasksDir = path.join(openpmDir, 'tasks');
+        const tasks = readAll(tasksDir).filter(t => t.sprint === args.id);
+        return { ok: true, sprint: Object.assign({}, frontmatter, { body, taskCount: tasks.length }) };
+      } catch (e) { return { ok: false, error: 'Sprint not found: ' + args.id }; }
     }
     case 'update': {
       const fp = path.join(sprintsDir, args.id + '.md');
-      const { frontmatter, body } = parseMarkdown(fp);
-      const updatable = ['name', 'goal', 'start_date', 'end_date'];
-      for (const key of updatable) {
-        if (args[key] !== undefined) frontmatter[key] = args[key];
-      }
-      if (args.status !== undefined) {
-        const transitions = { plan: ['active'], active: ['done'], done: [] };
-        const allowed = transitions[frontmatter.status];
-        if (!allowed || !allowed.includes(args.status)) {
-          return { ok: false, error: 'Sprint ' + args.id + ' 状态 ' + frontmatter.status + ' 不允许流转到 ' + args.status };
+      try {
+        const { frontmatter, body } = parseMarkdown(fp);
+        const updatable = ['name', 'goal', 'start_date', 'end_date'];
+        for (const key of updatable) {
+          if (args[key] !== undefined) frontmatter[key] = args[key];
         }
-        frontmatter.status = args.status;
-      }
-      writeMarkdown(fp, frontmatter, body);
-      return { ok: true, sprint: frontmatter };
+        if (args.status !== undefined) {
+          const transitions = { plan: ['active'], active: ['done'], done: [] };
+          const allowed = transitions[frontmatter.status];
+          if (!allowed || !allowed.includes(args.status)) {
+            return { ok: false, error: 'Sprint ' + args.id + ' 状态 ' + frontmatter.status + ' 不允许流转到 ' + args.status };
+          }
+          frontmatter.status = args.status;
+        }
+        writeMarkdown(fp, frontmatter, body);
+        return { ok: true, sprint: frontmatter };
+      } catch (e) { return { ok: false, error: 'Sprint not found: ' + args.id }; }
     }
     case 'delete': {
-      const fs = require('fs');
       const fp = path.join(sprintsDir, args.id + '.md');
       const tasksDir = path.join(openpmDir, 'tasks');
       const tasks = readAll(tasksDir).filter(t => t.sprint === args.id);
@@ -70,7 +73,7 @@ function sprintCommand(action, args, cwd) {
         const ids = tasks.map(t => t.id).join(', ');
         return { ok: false, error: 'Sprint ' + args.id + ' 关联 ' + tasks.length + ' 个任务(' + ids + ')。使用 --force 强制删除。' };
       }
-      fs.unlinkSync(fp);
+      try { fs.unlinkSync(fp); } catch (e) { return { ok: false, error: 'Sprint not found: ' + args.id }; }
       return { ok: true, deleted: args.id };
     }
     case 'list': {
