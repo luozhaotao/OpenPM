@@ -21,9 +21,10 @@ function probePort(port) {
 }
 
 async function start(port, cwd) {
+  cwd = path.resolve(cwd);
   const existing = await probePort(port);
   if (existing) {
-    if (existing.cwd === cwd) {
+    if (path.resolve(existing.cwd) === path.resolve(cwd)) {
       console.log(JSON.stringify({
         ok: true,
         message: '已在运行: ' + cwd,
