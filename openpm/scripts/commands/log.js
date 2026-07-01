@@ -20,6 +20,15 @@ function logCommand(action, args, cwd) {
       catch { return { ok: true, log: { date: today, tasks: [], body: '' }, empty: true }; }
     }
   }
+  if (action === 'show') {
+    const filePath = path.join(logsDir, args.id + '.md');
+    try {
+      const { frontmatter, body } = parseMarkdown(filePath);
+      return { ok: true, log: Object.assign({}, frontmatter, { body }) };
+    } catch {
+      return { ok: true, log: null, empty: true };
+    }
+  }
   if (action === 'list') {
     const logs = listFiles(logsDir).map(f => parseMarkdown(f).frontmatter).sort((a, b) => b.date.localeCompare(a.date));
     return { ok: true, logs };
