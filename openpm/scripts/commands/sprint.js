@@ -36,6 +36,43 @@ function sprintCommand(action, args, cwd) {
       writeMarkdown(path.join(sprintsDir, args.id + '-summary.md'), summaryFm, '## 完成事项\n' + doneList + '\n\n## 未完成\n' + todoList + '\n');
       return { ok: true, sprint: frontmatter, summary: summaryFm };
     }
+    case 'show': {
+      const fp = path.join(sprintsDir, args.id + '.md');
+      const { frontmatter, body } = parseMarkdown(fp);
+      const tasksDir = path.join(openpmDir, 'tasks');
+      const tasks = readAll(tasksDir).filter(t => t.sprint === args.id);
+      return { ok: true, sprint: Object.assign({}, frontmatter, { body, taskCount: tasks.length }) };
+    }
+    case 'update': {
+      const fp = path.join(sprintsDir, args.id + '.md');
+      const { frontmatter, body } = parseMarkdown(fp);
+      const updatable = ['name', 'goal', 'start_date', 'end_date'];
+      for (const key of updatable) {
+        if (args[key] !== undefined) frontmatter[key] = args[key];
+      }
+      if (args.status !== undefined) {
+        const transitions = { plan: ['active'], active: ['done'], done: [] };
+        const allowed = transitions[frontmatter.status];
+        if (!allowed || !allowed.includes(args.status)) {
+          return { ok: false, error: 'Sprint ' + args.id + ' 状态 ' + frontmatter.status + ' 不允许流转到 ' + args.status };
+        }
+        frontmatter.status = args.status;
+      }
+      writeMarkdown(fp, frontmatter, body);
+      return { ok: true, sprint: frontmatter };
+    }
+    case 'delete': {
+      const fs = require('fs');
+      const fp = path.join(sprintsDir, args.id + '.md');
+      const tasksDir = path.join(openpmDir, 'tasks');
+      const tasks = readAll(tasksDir).filter(t => t.sprint === args.id);
+      if (tasks.length > 0 && !args.force) {
+        const ids = tasks.map(t => t.id).join(', ');
+        return { ok: false, error: 'Sprint ' + args.id + ' 关联 ' + tasks.length + ' 个任务(' + ids + ')。使用 --force 强制删除。' };
+      }
+      fs.unlinkSync(fp);
+      return { ok: true, deleted: args.id };
+    }
     case 'list': {
       const sprints = listFiles(sprintsDir).filter(f => !f.includes('-summary')).map(f => parseMarkdown(f).frontmatter);
       return { ok: true, sprints };
