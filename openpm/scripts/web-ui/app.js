@@ -81,7 +81,21 @@ function updateAiStatus() {
   });
 }
 
+// Load project name from server
+function loadProjectName() {
+  fetch('/api/config').then(function(resp) { return resp.json(); }).then(function(data) {
+    if (data.ok && data.project) {
+      var el = document.getElementById('sidebar-project');
+      el.textContent = data.project;
+      el.title = data.cwd || data.project;
+    }
+  }).catch(function() {
+    // Server not running or AI offline — keep default "OpenPM"
+  });
+}
+
 // Start
 navigate(location.hash.slice(1) || 'kanban');
 updateAiStatus();
+loadProjectName();
 setInterval(updateAiStatus, 30000);
