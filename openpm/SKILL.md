@@ -81,9 +81,12 @@ openpm task delete <task-id>
 
 ```bash
 openpm sprint create --name "Sprint 1" --goal "..." --start 2026-07-01 --end 2026-07-14
-openpm sprint start --id sprint-1
-openpm sprint close <sprint-id>     # 自动生成 summary
+openpm sprint show <sprint-id>     # 查看单个 Sprint 详情及关联任务数
 openpm sprint list
+openpm sprint start --id sprint-1   # 激活 Sprint（plan → active）
+openpm sprint update <sprint-id> --name "..." --goal "..." --status active
+openpm sprint close <sprint-id>     # 关闭并自动生成 summary；未完成任务移入下个 Sprint
+openpm sprint delete <sprint-id> [--force]  # 有关联任务时需 --force
 ```
 
 ### Epic / Milestone / Log / Summary
@@ -91,11 +94,19 @@ openpm sprint list
 ```bash
 openpm epic create --title "用户认证系统"
 openpm epic list
+openpm epic show <epic-id>          # 查看 Epic 详情及关联任务
+openpm epic update <epic-id> --title "..." --status in_progress
+openpm epic delete <epic-id> [--force]  # 有关联任务时需 --force
 
 openpm milestone create --name "MVP v0.1" --date 2026-08-01
 openpm milestone list
+openpm milestone show <ms-id>
+openpm milestone update <ms-id> --name "..." --date ... --status current
+openpm milestone delete <ms-id>
 
 openpm log today [--summary "..."] [--tasks "task-001:done,task-002:in_progress"]
+openpm log show <date>              # 读取指定日期日志，如 2026-07-01
+openpm log list
 
 openpm summary --sprint sprint-1
 ```
