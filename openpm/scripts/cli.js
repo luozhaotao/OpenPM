@@ -1,11 +1,4 @@
 #!/usr/bin/env node
-const initCommand = require('./commands/init');
-const taskCommand = require('./commands/task');
-const sprintCommand = require('./commands/sprint');
-const epicCommand = require('./commands/epic');
-const milestoneCommand = require('./commands/milestone');
-const logCommand = require('./commands/log');
-const summaryCommand = require('./commands/summary');
 
 function parseArgs(argv) {
   const args = { _: [] };
@@ -34,13 +27,13 @@ async function main() {
   if (args['depends-on']) args['depends-on'] = args['depends-on'];
   try {
     switch (entity) {
-      case 'init': result = initCommand(cwd); break;
-      case 'task': result = taskCommand(action, args, cwd); break;
-      case 'sprint': result = sprintCommand(action, args, cwd); break;
-      case 'epic': result = epicCommand(action, args, cwd); break;
-      case 'milestone': result = milestoneCommand(action, args, cwd); break;
-      case 'log': result = logCommand(action, args, cwd); break;
-      case 'summary': result = summaryCommand(args, cwd); break;
+      case 'init': result = require('./commands/init')(cwd); break;
+      case 'task': result = require('./commands/task')(action, args, cwd); break;
+      case 'sprint': result = require('./commands/sprint')(action, args, cwd); break;
+      case 'epic': result = require('./commands/epic')(action, args, cwd); break;
+      case 'milestone': result = require('./commands/milestone')(action, args, cwd); break;
+      case 'log': result = require('./commands/log')(action, args, cwd); break;
+      case 'summary': result = require('./commands/summary')(args, cwd); break;
       case 'web': {
         const server = require('./web/server');
         return await server.start(args.port || 23214, cwd);
