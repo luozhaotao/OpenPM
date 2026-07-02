@@ -23,7 +23,7 @@ metadata:
 ## 核心约束
 
 - **只用 CLI，不碰文件**：创建/修改任何实体必须通过 `node openpm/scripts/cli.js` 命令。`templates/` 目录仅供参考字段含义，禁止直接复制。
-- **先启 Web，再操数据**：任何数据操作之前，先启动 `openpm web`。如端口被其他项目占用，使用 `--port` 换端口。
+- **Web 仪表盘（可选）**：如需可视化浏览项目状态，启动 `openpm web`。如端口被占用，使用 `--port` 换端口。CLI 数据操作不依赖 Web 服务。
 
 ## 数据模型速查
 
@@ -81,9 +81,12 @@ openpm task delete <task-id>
 
 ```bash
 openpm sprint create --name "Sprint 1" --goal "..." --start 2026-07-01 --end 2026-07-14
-openpm sprint start --id sprint-1
-openpm sprint close <sprint-id>     # 自动生成 summary
+openpm sprint show <sprint-id>     # 查看单个 Sprint 详情及关联任务数
 openpm sprint list
+openpm sprint start --id sprint-1   # 激活 Sprint（plan → active）
+openpm sprint update <sprint-id> --name "..." --goal "..." --status active
+openpm sprint close <sprint-id>     # 关闭并自动生成 summary；未完成任务移入下个 Sprint
+openpm sprint delete <sprint-id> [--force]  # 有关联任务时需 --force
 ```
 
 ### Epic / Milestone / Log / Summary
@@ -91,11 +94,19 @@ openpm sprint list
 ```bash
 openpm epic create --title "用户认证系统"
 openpm epic list
+openpm epic show <epic-id>          # 查看 Epic 详情及关联任务
+openpm epic update <epic-id> --title "..." --status in_progress
+openpm epic delete <epic-id> [--force]  # 有关联任务时需 --force
 
 openpm milestone create --name "MVP v0.1" --date 2026-08-01
 openpm milestone list
+openpm milestone show <ms-id>
+openpm milestone update <ms-id> --name "..." --date ... --status current
+openpm milestone delete <ms-id>
 
 openpm log today [--summary "..."] [--tasks "task-001:done,task-002:in_progress"]
+openpm log show <date>              # 读取指定日期日志，如 2026-07-01
+openpm log list
 
 openpm summary --sprint sprint-1
 ```
@@ -110,15 +121,11 @@ openpm web [--port 23214]
 
 ### Sprint Planning
 
-> ⚠️ 先确保 `openpm web` 已运行
-
 1. 创建 Sprint：`openpm sprint create --name "Sprint 2" --goal "..." --start ... --end ...`
 2. 批量创建任务（每个任务一条命令）
 3. 激活 Sprint：`openpm sprint start --id sprint-2`
 
 ### 每日开发
-
-> ⚠️ 先确保 `openpm web` 已运行
 
 1. 看待办：`openpm task list --sprint sprint-2 --status todo`
 2. 读 AC：`openpm task show <task-id>`
@@ -127,8 +134,6 @@ openpm web [--port 23214]
 5. 收工：`openpm log today --summary "..."`
 
 ### Sprint 闭合
-
-> ⚠️ 先确保 `openpm web` 已运行
 
 1. 检查遗漏：`openpm task list --sprint sprint-2 --status todo`
 2. 关闭：`openpm sprint close sprint-2`（未完成任务自动移入下个 Sprint）
