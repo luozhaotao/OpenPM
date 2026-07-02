@@ -16,7 +16,7 @@ function probePort(port) {
       });
     });
     req.on('error', () => resolve(null));
-    req.setTimeout(2000, () => { resolve(null); });
+    req.setTimeout(500, () => { resolve(null); });
   });
 }
 
