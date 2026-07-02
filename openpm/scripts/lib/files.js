@@ -1,6 +1,22 @@
 const fs = require('fs');
 const path = require('path');
 
+// 进程级内存缓存，TTL 5 秒
+const _cache = new Map();
+const CACHE_TTL = 5000;
+
+function _cachedReadAll(dir) {
+  const now = Date.now();
+  const entry = _cache.get(dir);
+  if (entry && (now - entry.time) < CACHE_TTL) return entry.data;
+  const data = listFiles(dir).map(f => {
+    const { frontmatter } = parseMarkdown(f);
+    return frontmatter;
+  });
+  _cache.set(dir, { data, time: now });
+  return data;
+}
+
 // 解析 Markdown 文件：分离 frontmatter 和 body
 function parseMarkdown(filePath) {
   const content = fs.readFileSync(filePath, 'utf-8');
@@ -70,6 +86,7 @@ function writeMarkdown(filePath, frontmatter, body) {
   const dir = path.dirname(filePath);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(filePath, content, 'utf-8');
+  _cache.delete(dir);  // 写入后自动失效该目录缓存
 }
 
 // 列出目录中所有文件
@@ -80,12 +97,14 @@ function listFiles(dir) {
     .map(f => path.join(dir, f));
 }
 
-// 读取目录中所有文件的 frontmatter
+// 读取目录中所有文件的 frontmatter（带内存缓存）
 function readAll(dir) {
-  return listFiles(dir).map(f => {
-    const { frontmatter } = parseMarkdown(f);
-    return frontmatter;
-  });
+  return _cachedReadAll(dir);
 }
 
-module.exports = { parseMarkdown, parseYaml, serializeYaml, writeMarkdown, listFiles, readAll };
+// 清除指定目录的缓存
+function invalidateCache(dir) {
+  _cache.delete(dir);
+}
+
+module.exports = { parseMarkdown, parseYaml, serializeYaml, writeMarkdown, listFiles, readAll, invalidateCache };
