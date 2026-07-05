@@ -28,13 +28,43 @@ function sprintCommand(action, args, cwd) {
       frontmatter.status = 'done';
       writeMarkdown(fp, frontmatter, body);
       const tasksDir = path.join(openpmDir, 'tasks');
-      const tasks = readAll(tasksDir).filter(t => t.sprint === args.id);
-      const completed = tasks.filter(t => t.status === 'done').length;
-      const summaryFm = { sprint: args.id, completed, total: tasks.length };
+      const tasks = readAll(tasksDir).filter(function(t) { return t.sprint === args.id; });
+      const completed = tasks.filter(function(t) { return t.status === 'done'; }).length;
+      const inProgress = tasks.filter(function(t) { return t.status === 'in_progress'; });
+      const todoTasks = tasks.filter(function(t) { return t.status === 'todo'; });
+      const incomplete = inProgress.concat(todoTasks);
+
+      // 自动迁移未完成任务到下一个 plan 状态的 Sprint，或清除 sprint 归属
+      const nextSprint = readAll(sprintsDir).filter(function(s) { return s.status === 'plan'; }).sort(function(a, b) { return a.id.localeCompare(b.id); })[0];
+      const migrated = [];
+      for (var i = 0; i < incomplete.length; i++) {
+        var t = incomplete[i];
+        var tfp = path.join(tasksDir, t.id + '.md');
+        var parsed = parseMarkdown(tfp);
+        var tfm = parsed.frontmatter;
+        var tbody = parsed.body;
+        if (nextSprint) {
+          tfm.sprint = nextSprint.id;
+          migrated.push({ task: t.id, to: nextSprint.id });
+        } else {
+          delete tfm.sprint;
+          migrated.push({ task: t.id, to: 'unassigned' });
+        }
+        writeMarkdown(tfp, tfm, tbody);
+      }
+
+      // 生成 summary，区分 in_progress 和 todo
+      const summaryFm = { sprint: args.id, completed: completed, total: tasks.length, in_progress: inProgress.length };
       const doneList = tasks.filter(function(t) { return t.status === 'done'; }).map(function(t) { return '- ' + t.title; }).join('\n');
-      const todoList = tasks.filter(function(t) { return t.status !== 'done'; }).map(function(t) { return '- ' + t.title; }).join('\n');
-      writeMarkdown(path.join(sprintsDir, args.id + '-summary.md'), summaryFm, '## 完成事项\n' + doneList + '\n\n## 未完成\n' + todoList + '\n');
-      return { ok: true, sprint: frontmatter, summary: summaryFm };
+      const inProgressList = inProgress.map(function(t) { return '- ' + t.title + ' (进行中被关闭)'; }).join('\n');
+      const todoList = todoTasks.map(function(t) { return '- ' + t.title; }).join('\n');
+      var warningText = '';
+      if (inProgress.length > 0) {
+        warningText = '\n\n> ⚠️ 此 Sprint 关闭时有 ' + inProgress.length + ' 个进行中的任务，已自动迁移。\n';
+      }
+      writeMarkdown(path.join(sprintsDir, args.id + '-summary.md'), summaryFm,
+        '## 完成事项\n' + doneList + '\n\n## 进行中（已迁移）\n' + inProgressList + '\n\n## 未开始（已迁移）\n' + todoList + warningText);
+      return { ok: true, sprint: frontmatter, summary: summaryFm, migrated: migrated, warning: inProgress.length > 0 ? '有 ' + inProgress.length + ' 个 in_progress 任务被关闭并迁移' : null };
     }
     case 'show': {
       const fp = path.join(sprintsDir, args.id + '.md');
