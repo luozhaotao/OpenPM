@@ -5,6 +5,7 @@
 </div>
 <script>
 async function loadEpics() {
+  var L = window.LABELS;
   var epics = await api('epics');
   var tasks = await api('tasks');
   var allTasks = tasks.tasks || [];
@@ -17,16 +18,16 @@ async function loadEpics() {
     var done = etasks.filter(function(t) { return t.status === 'done'; }).length;
     totalDone += done;
     totalAll += etasks.length;
-    html += '<div class="epic-card open"><div class="epic-header" onclick="this.parentElement.classList.toggle(\'open\')"><div style="font-weight:700;color:var(--primary)">' + e.title + '</div><span style="font-size:11px;color:var(--text-muted)">' + done + '/' + etasks.length + ' · ' + e.status + '</span></div>';
+    html += '<div class="epic-card open"><div class="epic-header" onclick="this.parentElement.classList.toggle(\'open\')"><div style="font-weight:700;color:var(--primary)">' + e.title + '</div><span style="font-size:11px;color:var(--text-muted)">' + done + '/' + etasks.length + ' · ' + (L.status[e.status] || e.status) + '</span></div>';
     for (var j = 0; j < etasks.length; j++) {
       var t = etasks[j];
       html += '<div class="task-row"><span class="task-dot ' + t.status + '"></span><span style="font-family:monospace;font-size:10px;color:var(--text-muted)">' + t.id + '</span><span>' + t.title + '</span></div>';
     }
     html += '</div>';
   }
-  document.getElementById('epic-list').innerHTML = html || '<p style="color:var(--text-muted)">暂无 Epic</p>';
+  document.getElementById('epic-list').innerHTML = html || '<p style="color:var(--text-muted)">暂无专题</p>';
   document.getElementById('epic-stats').innerHTML =
-    '<p>Epic: <strong>' + (epics.epics || []).length + '</strong></p>' +
+    '<p>专题: <strong>' + (epics.epics || []).length + '</strong></p>' +
     '<p>任务: <strong>' + allTasks.length + '</strong></p>' +
     '<p>完成: <strong style="color:var(--success)">' + totalDone + '</strong></p>';
 }
