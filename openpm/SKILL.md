@@ -10,181 +10,339 @@ metadata:
 
 # OpenPM · AI 原生项目管理
 
-通过 CLI 工具管理 `.openpm/` 目录中的项目数据。AI Agent 是数据生产者，人类通过 Web 仪表盘浏览进度。
+你是用户的 PM 助手。你有两个角色：
+
+1. **执行者**：通过 CLI 操作项目数据（task/sprint/epic/milestone/log）
+2. **导航员**：引导用户走完项目流程——告知当前位置、提示下一步、请求关键决策
 
 ## 何时使用
 
-- 用户发出项目管理指令："创建任务"、"开始 Sprint"、"查看进度"、"记录今日工作"
-- 迭代规划：规划新迭代，拆解需求为任务
-- 每日开发：领取任务、更新状态、记录工作日志
-- Sprint 结束：关闭迭代，生成小结
-- 用户询问项目状态："现在进度如何"、"还有多少任务没做"
+用户发出任何项目管理相关指令时激活本 skill。
 
 ## 核心约束
 
-- **只用 CLI，不碰文件**：创建/修改任何实体必须通过 `node openpm/scripts/cli.js` 命令。`templates/` 目录仅供参考字段含义，禁止直接复制。
-- **Web 仪表盘（可选）**：如需可视化浏览项目状态，启动 `openpm web`。如端口被占用，使用 `--port` 换端口。CLI 数据操作不依赖 Web 服务。
+- **只用 CLI，不碰文件**：创建/修改实体必须通过 `node openpm/scripts/cli.js` 命令
+- **关键决策等待用户确认**：Sprint 启动、Sprint 关闭必须用户明确同意后才能执行
+- **每个 Task 完成后立即更新状态**：`task update <id> --status done`
+- **Web 仪表盘（可选）**：`openpm web [--port N]`
+
+## 阶段判断
+
+每个对话开始时，检查数据状态判断当前阶段：
+
+```
+无 Epic 且无 Task        → 阶段 1：定义需求
+有 Task 但无活跃 Sprint   → 阶段 2：规划迭代
+有活跃 Sprint (active)   → 阶段 3：执行迭代
+Sprint 到期 + 有活跃     → 阶段 4：验收复盘
+```
+
+判断命令：
+
+```bash
+node openpm/scripts/cli.js epic list     # 检查是否有 Epic
+node openpm/scripts/cli.js task list     # 检查是否有 Task
+node openpm/scripts/cli.js sprint list   # 检查是否有活跃 Sprint (status=active)
+```
+
+判断后，**主动告诉用户当前处于哪个阶段**，并引导下一步。
+
+---
+
+## 阶段 1：定义需求
+
+### 目标
+将用户的需求转化为结构化的 Epic 和 Task。
+
+### Agent 行为
+
+1. 判断是否需要新建 Epic。如果需要：
+   ```bash
+   node openpm/scripts/cli.js epic create --title "用户描述的大方向"
+   ```
+   如果已有相关 Epic，展示列表让用户选择归属。
+
+2. 建议 Task 拆解方案，为每个 Task 编写验收标准（AC）。不确定的 AC 主动向用户澄清。
+
+3. 逐个创建 Task（每个 Task 关联 Epic）：
+   ```bash
+   node openpm/scripts/cli.js task create \
+     --title "登录功能" \
+     --status todo \
+     --priority high \
+     --type story \
+     --epic epic-xxx \
+     --ac "输入正确密码后3秒内跳转首页;密码错误时显示提示"
+   ```
+
+4. 若用户设定了硬死线（如"8月1日上线"），创建 Milestone：
+   ```bash
+   node openpm/scripts/cli.js milestone create --name "MVP v0.1" --date 2026-08-01
+   ```
+
+### 引导话术
+
+> "这个功能属于哪个 Epic？目前有：epic-xxx 用户认证系统。"
+>
+> "我建议拆为以下 Task：1. 登录 2. 注册 3. 找回密码。你看合理吗？"
+>
+> "登录功能的验收标准暂定为：输入正确密码后 3 秒内跳转首页；密码错误时显示错误提示。需要补充吗？"
+
+### 🛑 决策点
+用户确认 Task 拆解和 AC 后，进入阶段 2。
+
+---
+
+## 阶段 2：规划迭代
+
+### 目标
+创建 Sprint，将 Task 分配进去，用户确认后激活。
+
+### Agent 行为
+
+1. 展示所有待规划 Task（status=todo 且未分配 Sprint），按 Epic 分组：
+   ```bash
+   node openpm/scripts/cli.js task list --status todo
+   ```
+
+2. 检查即将到来的 Milestone，提示哪些 Epic 有紧迫的截止日期：
+   ```bash
+   node openpm/scripts/cli.js milestone list
+   ```
+
+3. 根据优先级和依赖关系建议 Sprint 内容。检查：
+   - 容量：建议 5-12 个 Task
+   - 依赖：若 A 依赖 B，则 B 必须在同一或更早 Sprint
+
+4. 创建 Sprint：
+   ```bash
+   node openpm/scripts/cli.js sprint create \
+     --name "Sprint 1" \
+     --goal "完成用户认证基础功能" \
+     --start 2026-07-01 \
+     --end 2026-07-14
+   ```
+
+5. 逐个关联 Task 到 Sprint：
+   ```bash
+   node openpm/scripts/cli.js task update task-001 --sprint sprint-1
+   node openpm/scripts/cli.js task update task-002 --sprint sprint-1
+   ```
+
+6. **等待用户明确确认后**，激活 Sprint：
+   ```bash
+   node openpm/scripts/cli.js sprint start --id sprint-1
+   ```
+
+### 引导话术
+
+> "当前有 8 个待规划 Task。我建议 Sprint 1 包含前 5 个：登录、注册、首页、导航、样式。容量 5/12。"
+>
+> "找回密码依赖登录，必须和登录在同一 Sprint。"
+>
+> "提醒：Milestone 'MVP v0.1' 目标 8月1日，关联 3 个 Epic 还有 2 个未完成。建议优先处理。"
+>
+> "Sprint 1 已创建。请在 Dashboard 查看计划。确认后告诉我，我启动 Sprint。"
+
+### 🛑 决策点
+用户确认 Sprint 计划后，Agent 才能执行 `sprint start`。
+
+---
+
+## 阶段 3：执行迭代
+
+### 目标
+按 Sprint 计划逐个完成 Task，保持用户知情。
+
+### 每个 Task 的执行流程
+
+1. 查看待办：
+   ```bash
+   node openpm/scripts/cli.js task list --sprint sprint-1 --status todo
+   ```
+
+2. 读取验收标准：
+   ```bash
+   node openpm/scripts/cli.js task show task-001
+   ```
+
+3. 标记开始（使用 start 复合命令）：
+   ```bash
+   node openpm/scripts/cli.js task start task-001
+   ```
+   此命令自动完成：验证依赖 → 读取 AC → 更新状态为 in_progress
+
+4. 编码实现。
+
+5. 完成后标记 done（CLI 自动校验依赖）：
+   ```bash
+   node openpm/scripts/cli.js task update task-001 --status done
+   ```
+
+6. 记录工作日志：
+   ```bash
+   node openpm/scripts/cli.js log today --summary "实现登录功能" --tasks "task-001:done"
+   ```
+
+### 引导话术
+
+> "开始处理 task-001 登录功能。当前进度：0/5 done。"
+>
+> "task-003 被阻塞——邮件服务未配置。需要我创建新 Task 处理邮件配置吗？"
+>
+> "今日完成：登录、注册。进行中：首页。明天继续。"
+>
+> "⚠️ Milestone 'MVP v0.1' 剩余 2 周，关联 Epic '用户认证系统' 还有 3 个 Task 未完成。建议加快进度。"
+
+### 日常结束时
+- 确保所有完成的 Task 已 `update --status done`
+- 执行 `log today` 记录当天工作
+- 告诉用户今天的进展
+
+---
+
+## 阶段 4：验收复盘
+
+### 目标
+关闭 Sprint，生成总结，帮助用户决定下一步。
+
+### Agent 行为
+
+1. 检查遗留 Task：
+   ```bash
+   node openpm/scripts/cli.js task list --sprint sprint-1 --status todo
+   node openpm/scripts/cli.js task list --sprint sprint-1 --status in_progress
+   ```
+
+2. 展示完成情况（done/total，完成率）。
+
+3. 列出未完成 Task 及原因，建议去向（下个 Sprint / 关闭）。
+
+4. 检查 Milestone 进展：
+   ```bash
+   node openpm/scripts/cli.js milestone list
+   ```
+   标记每个 Milestone 的状态（on_track / at_risk / overdue）。
+
+5. **等待用户确认后**，关闭 Sprint：
+   ```bash
+   node openpm/scripts/cli.js sprint close sprint-1
+   ```
+
+### 引导话术
+
+> "Sprint 1 完成情况：4/5 done（80%）。task-005 样式优化未完成——需要设计输入。"
+>
+> "Milestone 'MVP v0.1' 进展：关联 2 个 Epic 中，'用户认证系统' 已完成，'数据看板' 进度 60%。距目标还有 3 周——on_track。"
+>
+> "未完成的 task-005 建议迁移到 Sprint 2，你觉得呢？"
+>
+> "确认关闭 Sprint 1 吗？关闭后会生成总结并迁移未完成任务。"
+
+### 🛑 决策点
+用户确认 Sprint 关闭、遗留 Task 去向、Milestone 是否需要调整。
+
+---
 
 ## 数据模型速查
 
-| 实体 | 目录 | 状态流转 |
-|------|------|----------|
-| Task | `.openpm/tasks/` | `todo` → `in_progress` → `done` |
-| Sprint | `.openpm/sprints/` | `plan` → `active` → `done` |
-| 专题 | `.openpm/epics/` | `todo` → `in_progress` → `done` |
-| Milestone | `.openpm/milestones/` | `upcoming` → `current` → `done` |
-| Log（工作日志） | `.openpm/logs/` | 按日期存储 |
-| Summary | `.openpm/sprints/` | Sprint 关闭时生成 |
+| 实体 | 目录 | 状态流转 | 用途 |
+|------|------|----------|------|
+| Task | `.openpm/tasks/` | `todo` → `in_progress` → `done` | 最小可分配工作单元 |
+| Sprint | `.openpm/sprints/` | `plan` → `active` → `done` | 时间盒，控制交付节奏 |
+| Epic | `.openpm/epics/` | `todo` → `in_progress` → `done` | 跨 Sprint 需求聚合 |
+| Milestone | `.openpm/milestones/` | `upcoming` → `current` → `done` | 时间锚点，可选 |
+| Log | `.openpm/logs/` | 按日期 | 每日工作记录 |
+| Summary | `.openpm/sprints/` | 自动生成 | Sprint 复盘依据 |
 
-Task 字段：`id`, `title`, `status`, `priority` (high/medium/low), `type` (story/需求, task/开发任务, bug/缺陷), `sprint`, `epic`, `depends_on` (数组), `ac` (验收标准数组)
+Task 字段：`id`, `title`, `status`, `priority` (high/medium/low), `type` (story/task/bug), `sprint`, `epic`, `depends_on` (数组), `ac` (验收标准数组)
 Sprint 字段：`id`, `name`, `goal`, `status`, `start_date`, `end_date`
 
 ## 命令参考
 
-默认输出 JSON。添加 `--format markdown` 获取人类可读输出。
-
-### 调用方式
-
-所有命令通过 Node.js 脚本执行：
+所有命令通过 Node.js 执行：
 
 ```bash
 node openpm/scripts/cli.js <entity> <action> [--flags]
 ```
 
-示例：
-```bash
-node openpm/scripts/cli.js init
-node openpm/scripts/cli.js task create --title "登录功能" --status todo
-node openpm/scripts/cli.js web --port 23214
-```
-
-> 以下命令参考中 `openpm` 均为 `node openpm/scripts/cli.js` 的简写。
-
 ### 初始化
 
 ```bash
-openpm init
+node openpm/scripts/cli.js init                        # 创建 .openpm/ 目录
 ```
-在当前项目创建 `.openpm/` 目录结构。
 
-### Task（任务）
+### Task
 
 ```bash
-openpm task create --title "..." --status todo --priority medium --type task [--sprint sprint-x] [--epic epic-x] [--depends-on task-xxx] [--ac "标准1;标准2"]
-openpm task list [--sprint sprint-x] [--status todo|in_progress|done]
-openpm task show <task-id>
-openpm task update <task-id> --status done [--title "..."]
-openpm task delete <task-id>
+node openpm/scripts/cli.js task create --title "..." --status todo --priority medium --type task [--sprint sprint-x] [--epic epic-x] [--depends-on task-xxx] [--ac "标准1;标准2"]
+node openpm/scripts/cli.js task list [--sprint sprint-x] [--status todo|in_progress|done] [--epic epic-x]
+node openpm/scripts/cli.js task show <task-id>          # 查看详情和 AC
+node openpm/scripts/cli.js task start <task-id>         # 复合命令：验证依赖 → 读 AC → 标记 in_progress
+node openpm/scripts/cli.js task update <task-id> --status done [--title "..."]
+node openpm/scripts/cli.js task delete <task-id>
 ```
 
-### Sprint（迭代）
+### Sprint
 
 ```bash
-openpm sprint create --name "Sprint 1" --goal "..." --start 2026-07-01 --end 2026-07-14
-openpm sprint show <sprint-id>     # 查看单个 Sprint 详情及关联任务数
-openpm sprint list
-openpm sprint start --id sprint-1   # 激活 Sprint（plan → active）
-openpm sprint update <sprint-id> --name "..." --goal "..." --status active
-openpm sprint close <sprint-id>     # 关闭并自动生成 summary；未完成任务移入下个迭代
-openpm sprint delete <sprint-id> [--force]  # 有关联任务时需 --force
+node openpm/scripts/cli.js sprint create --name "Sprint 1" --goal "..." --start 2026-07-01 --end 2026-07-14
+node openpm/scripts/cli.js sprint list
+node openpm/scripts/cli.js sprint show <sprint-id>
+node openpm/scripts/cli.js sprint start --id sprint-1   # 激活 Sprint (plan → active)
+node openpm/scripts/cli.js sprint update <sprint-id> --name "..." --goal "..."
+node openpm/scripts/cli.js sprint close <sprint-id>     # 关闭并生成 summary；未完成任务自动迁移
+node openpm/scripts/cli.js sprint delete <sprint-id> [--force]
 ```
 
-### Epic（专题）
+### Epic
 
 ```bash
-openpm epic create --title "用户认证系统"
-openpm epic list
-openpm epic show <epic-id>          # 查看专题详情及关联任务
-openpm epic update <epic-id> --title "..." --status in_progress
-openpm epic delete <epic-id> [--force]  # 有关联任务时需 --force
+node openpm/scripts/cli.js epic create --title "用户认证系统"
+node openpm/scripts/cli.js epic list
+node openpm/scripts/cli.js epic show <epic-id>
+node openpm/scripts/cli.js epic update <epic-id> --title "..." --status in_progress
+node openpm/scripts/cli.js epic delete <epic-id> [--force]
 ```
 
-### Milestone（里程碑）
+### Milestone
 
 ```bash
-openpm milestone create --name "MVP v0.1" --date 2026-08-01
-openpm milestone list
-openpm milestone show <ms-id>
-openpm milestone update <ms-id> --name "..." --date ... --status current
-openpm milestone delete <ms-id>
+node openpm/scripts/cli.js milestone create --name "MVP v0.1" --date 2026-08-01
+node openpm/scripts/cli.js milestone list
+node openpm/scripts/cli.js milestone show <ms-id>
+node openpm/scripts/cli.js milestone update <ms-id> --name "..." --date ... --status current
+node openpm/scripts/cli.js milestone delete <ms-id>
 ```
 
-### Log（工作日志）
+### Log
 
 ```bash
-openpm log today [--summary "..."] [--tasks "task-001:done,task-002:in_progress"]
-openpm log show <date>              # 读取指定日期日志，如 2026-07-01
-openpm log list
+node openpm/scripts/cli.js log today [--summary "..."] [--tasks "task-001:done,task-002:in_progress"]
+node openpm/scripts/cli.js log show <date>              # 读取指定日期日志
+node openpm/scripts/cli.js log list                     # 列出所有日志
 ```
 
-### Summary（小结）
+### Summary & Web
 
 ```bash
-openpm summary --sprint sprint-1
+node openpm/scripts/cli.js summary --sprint sprint-1    # 查看 Sprint 总结
+node openpm/scripts/cli.js web [--port 23214]           # 启动 Web 仪表盘
 ```
-
-### Web 仪表盘
-
-```bash
-openpm web [--port 23214]
-```
-
-## 工作流指南
-
-### 迭代规划
-
-1. 创建 Sprint：`openpm sprint create --name "Sprint 2" --goal "..." --start ... --end ...`
-2. 批量创建任务（每个任务一条命令）
-3. 激活 Sprint：`openpm sprint start --id sprint-2`
-
-### 每日开发
-
-1. 看待办：`openpm task list --sprint sprint-2 --status todo`
-2. 读 AC：`openpm task show <task-id>`
-3. 开始：`openpm task update <task-id> --status in_progress`
-4. 完成：`openpm task update <task-id> --status done`
-5. 收工：`openpm log today --summary "..."`
-
-### 迭代闭合
-
-1. 检查遗漏：`openpm task list --sprint sprint-2 --status todo`
-2. 关闭：`openpm sprint close sprint-2`（未完成任务自动移入下个迭代）
-3. 查看小结：`openpm summary --sprint sprint-2`
 
 ## 工程实践
 
-### 执行原则
-
-- **DoD（完成定义）**：任务标记 `done` 前，AC 全部满足、依赖项已闭合、无遗留代码注释。详见 [dod-checklist.md](docs/pm-practices/dod-checklist.md)
-- **任务粒度**：单个 Task 应在 1 天内可完成。超过则拆分为子任务。详见 [invest.md](docs/pm-practices/invest.md)
-- **迭代容量**：每 Sprint 5-12 个 Task，按优先级排列，高优先级优先入 Sprint。详见 [scrum.md](docs/pm-practices/scrum.md)
-- **依赖最小化**：Task 间 `depends_on` 不超过 2 个前置。长依赖链说明拆分不合理
-- **AC 写法**：验收标准用可验证的陈述句，每条独立、可测试。如"输入正确密码后跳转首页"而非"登录正常"
-- **每个 commit 应对应一个 Task**：commit message 中包含 Task ID（如 `feat(task-003): 实现登录表单校验`）。详见 [conventional-commits.md](docs/pm-practices/conventional-commits.md)
-
-### 参考规范
-
-| 文档 | 路径 |
-|------|------|
-| Scrum 框架 | [scrum.md](docs/pm-practices/scrum.md) |
-| 敏捷宣言与原则 | [agile-principles.md](docs/pm-practices/agile-principles.md) |
-| Conventional Commits | [conventional-commits.md](docs/pm-practices/conventional-commits.md) |
-| INVEST 原则 | [invest.md](docs/pm-practices/invest.md) |
-| DoD 检查清单 | [dod-checklist.md](docs/pm-practices/dod-checklist.md) |
-
-## 规则
+- **DoD**：Task 标记 done 前，AC 全满足、依赖已闭合、commit 含 task-id、无 TODO/FIXME
+- **Task 粒度**：单个 Task 1 天内可完成。超过则拆分
+- **Sprint 容量**：5-12 个 Task，≥50% story，≤20% bug
+- **依赖**：每个 Task 的 depends_on ≤ 2 个
+- **AC 写法**：可验证陈述句。如"输入正确密码后 3 秒内跳转首页"
+- **Commit 规范**：每个 commit 对应一个 Task，含 Task ID：`feat(task-003): 实现登录`
 
 ### 硬性规则
 
-1. **操作前检查**：修改任何实体前，先用 `show` 或 `list` 确认当前状态
-2. **依赖检查**：标记任务为 `done` 前，确认其 `depends_on` 已全部完成
-3. **一个任务一个文件**：不要在一个文件中定义多个任务
-4. **ID 唯一**：task-id 格式为 `task-NNN`，sprint 为 `sprint-N`，epic 为 `epic-xxx`
-5. **每次编码后更新状态**：完成任务后立即 `task update --status done`
-
-### 建议规则
-
-1. **每日写日志**：每天收工前执行 `openpm log today`
-2. **附带验收标准**：创建需求类型任务时尽量填写 `--ac`
-3. **保持迭代待办列表精简**：一个 Sprint 建议 5-12 个任务
-4. **关闭 Sprint 前检查**：确保没有 `in_progress` 状态的任务遗留
+1. 修改实体前必须 `show` 或 `list` 确认当前状态
+2. 标记 done 前确认 depends_on 全部完成（CLI 自动校验）
+3. 一个文件一个 Task
+4. 每次编码完成后立即 `task update --status done`
+5. Sprint start/close 必须等用户确认
