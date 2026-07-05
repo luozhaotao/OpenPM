@@ -88,6 +88,8 @@ node openpm/scripts/cli.js sprint list   # 检查是否有活跃 Sprint (status=
 >
 > "登录功能的验收标准暂定为：输入正确密码后 3 秒内跳转首页；密码错误时显示错误提示。需要补充吗？"
 
+> **参考**：评估 Task 质量时阅读 `docs/pm-practices/invest.md`；需求模糊时参考 `docs/pm-practices/agile-principles.md`。
+
 ### 🛑 决策点
 用户确认 Task 拆解和 AC 后，进入阶段 2。
 
@@ -144,6 +146,8 @@ node openpm/scripts/cli.js sprint list   # 检查是否有活跃 Sprint (status=
 >
 > "Sprint 1 已创建。请在 Dashboard 查看计划。确认后告诉我，我启动 Sprint。"
 
+> **参考**：规划 Sprint 时阅读 `docs/pm-practices/scrum.md` 了解 Sprint 机制和容量规划原则。
+
 ### 🛑 决策点
 用户确认 Sprint 计划后，Agent 才能执行 `sprint start`。
 
@@ -198,6 +202,8 @@ node openpm/scripts/cli.js sprint list   # 检查是否有活跃 Sprint (status=
 - 确保所有完成的 Task 已 `update --status done`
 - 执行 `log today` 记录当天工作
 - 告诉用户今天的进展
+
+> **参考**：标记 done 前阅读 `docs/pm-practices/dod-checklist.md` 逐项检查；编码时参考 `docs/pm-practices/conventional-commits.md` 的 commit 格式。
 
 ---
 
