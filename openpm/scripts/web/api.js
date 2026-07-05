@@ -41,6 +41,7 @@ function handleApi(pathname, cwd) {
     return {
       ok: true,
       totalTasks: tasks.tasks ? tasks.tasks.length : 0,
+      todoTasks: tasks.tasks ? tasks.tasks.filter(t => t.status === 'todo').length : 0,
       completedTasks: tasks.tasks ? tasks.tasks.filter(t => t.status === 'done').length : 0,
       inProgressTasks: tasks.tasks ? tasks.tasks.filter(t => t.status === 'in_progress').length : 0,
       activeSprint: sprints.sprints ? sprints.sprints.find(s => s.status === 'active') || null : null,
