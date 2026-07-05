@@ -1,6 +1,6 @@
 ---
 name: openpm
-description: AI Agent 敏捷项目管理——当需要创建任务、规划 Sprint、更新进度、记录工作日志时使用。覆盖完整开发流程的项目管理数据操作。
+description: AI Agent 敏捷项目管理助手。当用户提到任何项目管理相关内容时必须激活——包括但不限于：任务、待办、Task、Sprint、迭代、Epic、Milestone、里程碑、进度、工作日志、验收标准、需求拆解、每日站会、Scrum、敏捷。也适用于日常对话式场景："今天做了什么""接下来做什么""项目进展如何""规划下个迭代""关闭这个 Sprint""还剩多少任务"。Agent 以执行者+导航员双重角色，通过 CLI 操作 .openpm/ 中的 Task/Sprint/Epic/Milestone/Log 实体，覆盖需求定义→迭代规划→执行→复盘全流程。
 version: "1.0.0"
 license: MIT
 metadata:
