@@ -75,7 +75,9 @@ Agent 通过检查数据状态判断当前阶段：
 
 **🛑 决策点**：用户确认 Task 拆解和 AC。
 
-**涉及实体**：Epic（创建）、Task（创建并关联 Epic）
+**涉及实体**：Epic（创建）、Task（创建并关联 Epic）、Milestone（可选，用户提出时创建）
+
+**Milestone（可选）**：若用户有硬死线（如"8 月 1 日上线 MVP"），Agent 在此阶段创建 Milestone 并关联相关 Epic。一个 Milestone 可关联多个 Epic，表达"这几个 Epic 都要在 X 日期前完成"。
 
 ### 阶段 2：规划迭代
 
@@ -85,10 +87,11 @@ Agent 通过检查数据状态判断当前阶段：
 
 1. 展示所有待规划 Task，按 Epic 分组。
 2. 根据优先级和依赖关系建议 Sprint 内容。
-3. 提示容量：当前选了 X 个 Task（建议 5-12 个）。
-4. 检查依赖：A 依赖 B，则 B 必须在同一或更早 Sprint。
-5. 创建 Sprint 并关联 Task。
-6. 等待用户明确确认后执行 `sprint start`。
+3. 检查即将到来的 Milestone，提示哪些 Epic 有紧迫的截止日期。
+4. 提示容量：当前选了 X 个 Task（建议 5-12 个）。
+5. 检查依赖：A 依赖 B，则 B 必须在同一或更早 Sprint。
+6. 创建 Sprint 并关联 Task。
+7. 等待用户明确确认后执行 `sprint start`。
 
 **Agent 引导话术**：
 
@@ -97,14 +100,16 @@ Agent 通过检查数据状态判断当前阶段：
 > "找回密码依赖登录，必须和登录在同一 Sprint——所以也包含在内。"
 >
 > "Sprint 1 已创建。请在 Dashboard 查看计划。确认后告诉我，我启动 Sprint。"
+>
+> "提醒：Milestone 'MVP v0.1' 目标日期 8 月 1 日，关联的 3 个 Epic 还有 2 个未完成。建议本 Sprint 优先处理这些 Epic 的 Task。"
 
 **🛑 决策点**：用户确认 Sprint 计划，Agent 执行 `sprint start`。
 
-**涉及实体**：Sprint（创建并激活）、Task（关联 Sprint）
+**涉及实体**：Sprint（创建并激活）、Task（关联 Sprint）、Milestone（作为优先级参考）
 
 ### 阶段 3：执行迭代
 
-**用户动作**：通过 Dashboard 监控进度（Kanban、Sprint 统计、Worklog）。
+**用户动作**：通过 Dashboard 监控进度（Kanban、Sprint 统计、Worklog、Timeline 上的 Milestone 进度）。
 
 **Agent 动作（每完成一个 Task）**：
 
@@ -122,32 +127,37 @@ Agent 通过检查数据状态判断当前阶段：
 > "task-003 被阻塞——邮件服务未配置。需要我创建新 Task 处理邮件配置吗？"
 >
 > "今日完成：登录、注册。进行中：首页。明天继续。"
+>
+> "⚠️ Milestone 'MVP v0.1' 剩余 2 周，关联 Epic '用户认证系统' 还有 3 个 Task 未完成。建议加快进度。"
 
-**涉及实体**：Task（状态流转）、Log（每日记录）
+**涉及实体**：Task（状态流转）、Log（每日记录）、Milestone（进度监控，若有关联 Epic 的 Task 完成则自动可见进展）
 
 ### 阶段 4：验收复盘
 
-**用户动作**：查看 Sprint Summary，评估交付成果，决定下一步。
+**用户动作**：查看 Sprint Summary，评估交付成果，检查 Milestone 进展，决定下一步。
 
 **Agent 动作**：
 
 1. `task list --sprint <sprint> --status todo` — 检查遗留
 2. 展示完成情况：done/total，完成率
 3. 列出未完成任务及原因
-4. 建议未完成任务去向：下个 Sprint / 关闭 / 新建 Epic
-5. 等待用户确认后执行 `sprint close`
+4. 对每个 Milestone：检查关联 Epic 的完成进度，标记状态（on_track / at_risk / overdue）
+5. 建议未完成任务去向：下个 Sprint / 关闭 / 新建 Epic
+6. 等待用户确认后执行 `sprint close`
 
 **Agent 引导话术**：
 
 > "Sprint 1 完成情况：4/5 done（80%）。task-005 样式优化未完成——需要设计输入。"
 >
+> "Milestone 'MVP v0.1' 进展：关联的 2 个 Epic 中，'用户认证系统' 已完成，'数据看板' 进度 60%。距离目标日期还有 3 周——目前 on_track。"
+>
 > "未完成的 task-005 建议迁移到 Sprint 2，你觉得呢？"
 >
 > "确认关闭 Sprint 1 吗？关闭后会生成总结并迁移未完成任务。"
 
-**🛑 决策点**：用户确认 Sprint 关闭和遗留任务去向。
+**🛑 决策点**：用户确认 Sprint 关闭、遗留任务去向、Milestone 是否需要调整。
 
-**涉及实体**：Sprint（关闭）、Summary（自动生成）
+**涉及实体**：Sprint（关闭）、Summary（自动生成）、Milestone（状态审查，若所有关联 Epic 完成则建议标记 done）
 
 ## Agent 双重角色
 
