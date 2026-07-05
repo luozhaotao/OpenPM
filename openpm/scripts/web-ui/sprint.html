@@ -3,11 +3,12 @@
   <div class="stats" id="sprint-stats"></div>
   <div style="display:flex;gap:20px">
     <div style="flex:1"><h2 style="font-size:13px;font-weight:600;margin-bottom:12px">迭代列表</h2><div id="sprint-list"></div></div>
-    <div style="flex:1"><h2 style="font-size:13px;font-weight:600;margin-bottom:12px">Sprint 小结</h2><div id="summary-area"></div></div>
+    <div style="flex:1"><h2 style="font-size:13px;font-weight:600;margin-bottom:12px">迭代小结</h2><div id="summary-area"></div></div>
   </div>
 </div>
 <script>
 async function loadSprint() {
+  var L = window.LABELS;
   var sprints = await api('sprints');
   var tasks = await api('tasks');
   var stats = await api('stats');
@@ -20,14 +21,14 @@ async function loadSprint() {
       '<span class="sprint-dot ' + s.status + '"></span>' +
       '<div class="sprint-info"><div class="sprint-name">' + s.name + '</div>' +
       '<div class="sprint-meta">' + s.start_date + ' — ' + s.end_date + ' · ' + (s.goal || '') + '</div></div>' +
-      '<span style="font-size:12px;color:var(--text-secondary)">' + s.status + '</span></div>';
+      '<span style="font-size:12px;color:var(--text-secondary)">' + (L.sprint_status[s.status] || s.status) + '</span></div>';
   }
-  document.getElementById('sprint-list').innerHTML = html || '<p style="color:var(--text-muted)">暂无 Sprint</p>';
+  document.getElementById('sprint-list').innerHTML = html || '<p style="color:var(--text-muted)">暂无迭代</p>';
   document.getElementById('sprint-stats').innerHTML =
     '<div class="stat-card"><div class="stat-label">总任务</div><div class="stat-value">' + (stats.totalTasks || 0) + '</div></div>' +
     '<div class="stat-card"><div class="stat-label">完成</div><div class="stat-value" style="color:var(--success)">' + (stats.completedTasks || 0) + '</div></div>' +
     '<div class="stat-card"><div class="stat-label">进行中</div><div class="stat-value" style="color:var(--primary)">' + (stats.inProgressTasks || 0) + '</div></div>' +
-    '<div class="stat-card"><div class="stat-label">活跃 Sprint</div><div class="stat-value" style="font-size:18px">' + (stats.activeSprint ? stats.activeSprint.name : '无') + '</div></div>';
+    '<div class="stat-card"><div class="stat-label">活跃迭代</div><div class="stat-value" style="font-size:18px">' + (stats.activeSprint ? stats.activeSprint.name : '无') + '</div></div>';
   // Load summary for current sprint
   var activeSprint = list.find(function(s) { return s.status === 'active'; });
   if (activeSprint) {
