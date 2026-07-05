@@ -21,12 +21,50 @@
 | 结构重组 | 新增 `references/commands.md` | 从 SKILL.md 移出完整命令参考（约 70 行） |
 | 渐进披露 | SKILL.md | 在 5 个关键位置引用 `docs/pm-practices/` 下的文件 |
 | 规则→原理 | SKILL.md 工程实践节 | 5 条工作原则，每条解释原因；质量标准全部指向 docs |
+| 新增 README | 新增 `README.md` | 面向人类用户的说明文档，介绍技能用途、快速开始、目录结构 |
 
 ### 不改变
 
 - `scripts/`、`templates/`、`docs/pm-practices/` 内容完全不动
 - 四阶段工作流逻辑、引导话术、决策点标记全部保留
 - 核心约束（只用 CLI、决策等用户确认、完成即更新、可选 Web）保留
+
+## README.md 设计
+
+面向人类的技能说明文档，放在 `openpm/README.md`。内容包括：
+
+### 概述
+一句话定位：OpenPM 是一个 AI Agent 驱动的敏捷项目管理技能——Agent 操作数据，人类浏览仪表盘。
+
+### 工作原理
+```
+用户描述需求 → Agent 通过 CLI 操作 .openpm/ 数据
+                       ↓
+                Web 仪表盘供人类浏览进度
+```
+
+### 快速开始
+1. 初始化：对 Agent 说"初始化项目管理"
+2. 创建需求：描述你的功能需求，Agent 拆为 Task
+3. 规划迭代：Agent 建议 Sprint 内容，你确认后启动
+4. 执行：Agent 逐个完成 Task，你在仪表盘看进度
+5. 复盘：Sprint 结束，Agent 生成总结
+
+### 目录结构
+```
+openpm/
+├── SKILL.md          # AI Agent 的工作流指南
+├── README.md         # 本文档
+├── references/       # Agent 按需加载的参考文档
+│   └── commands.md   # 完整 CLI 命令参考
+├── docs/             # 项目管理知识库
+│   └── pm-practices/ # 敏捷实践参考
+├── scripts/          # CLI + Web 实现
+├── templates/        # 实体模板
+```
+
+### 数据存储
+所有项目数据存在用户项目的 `.openpm/` 目录中——Markdown + YAML 格式，零外部依赖，完全由用户掌控。
 
 ## 设计详情
 
