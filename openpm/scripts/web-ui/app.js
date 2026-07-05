@@ -91,7 +91,7 @@ async function api(path) {
 
 // Hash routing
 window.addEventListener('hashchange', function() {
-  navigate(location.hash.slice(1) || 'kanban');
+  navigate(location.hash.slice(1) || 'epic-tree');
 });
 
 // AI status detection
@@ -125,7 +125,7 @@ function loadProjectName() {
 }
 
 // Start
-navigate(location.hash.slice(1) || 'kanban');
+navigate(location.hash.slice(1) || 'epic-tree');
 updateAiStatus();
 loadProjectName();
 setInterval(updateAiStatus, 30000);
