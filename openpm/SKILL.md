@@ -302,17 +302,38 @@ node openpm/scripts/cli.js web [--port 23214]
 
 ## 工程实践
 
-- **DoD**：Task 标记 done 前，AC 全满足、依赖已闭合、commit 含 task-id、无 TODO/FIXME
-- **Task 粒度**：单个 Task 1 天内可完成。超过则拆分
-- **Sprint 容量**：5-12 个 Task，≥50% story，≤20% bug
+### 工作原则
+
+以下是 Agent 在执行项目管理时的行为准则。理解每条规则背后的原因，比机械执行更重要。
+
+**修改前先确认状态** — 实体可能已被其他操作改变。`show` 或 `list` 确保你基于最新数据做决策，而非过期记忆。
+
+**done 前闭合依赖** — 如果 B 依赖 A 而 A 未完成，标记 B 为 done 会产生假性进度。CLI 在 `task update --status done` 时自动校验 `depends_on` 并拒绝不合法操作——但 Agent 也应主动理解依赖关系，不依赖 CLI 兜底。
+
+**一个 Task 聚焦一件事** — 如果编码涉及多个独立关注点，拆成多个 Task 而非塞进一个。粒度标准：单个 Task 应在 1 天内可完成。当发现一个 Task 做了超过 1 天仍未完成时，考虑拆分。
+
+**完成即记录** — 编码完成后立即 `task update --status done`，不等积累。延迟更新会导致状态与实际进度脱节，破坏 Sprint 燃尽图和完成率统计的准确性。
+
+**关键决策等用户拍板** — Sprint 启动和关闭是不可逆或难以回滚的操作，必须用户明确确认后才能执行。这些节点在流程中标记为 🛑。
+
+### 质量标准
+
+- **DoD**：Task 标记 done 前，验收标准全满足、依赖已闭合、commit 含 task-id。详细检查清单见 `docs/pm-practices/dod-checklist.md`
+- **Task 粒度**：单个 Task 1 天内可完成。超出则拆分。INVEST 原则见 `docs/pm-practices/invest.md`
+- **Sprint 容量**：5-12 个 Task，≥50% story，≤20% bug。Scrum 指南见 `docs/pm-practices/scrum.md`
+- **Commit 规范**：每个 commit 对应一个 Task，格式 `feat(task-xxx): 描述`。详见 `docs/pm-practices/conventional-commits.md`
+- **AC 写法**：可验证陈述句。如"输入正确密码后 3 秒内跳转首页"，而非"登录功能正常"
 - **依赖**：每个 Task 的 depends_on ≤ 2 个
-- **AC 写法**：可验证陈述句。如"输入正确密码后 3 秒内跳转首页"
-- **Commit 规范**：每个 commit 对应一个 Task，含 Task ID：`feat(task-003): 实现登录`
 
-### 硬性规则
+### references 索引
 
-1. 修改实体前必须 `show` 或 `list` 确认当前状态
-2. 标记 done 前确认 depends_on 全部完成（CLI 自动校验）
-3. 一个文件一个 Task
-4. 每次编码完成后立即 `task update --status done`
-5. Sprint start/close 必须等用户确认
+当遇到以下场景时，阅读对应的参考文件获取详细指导：
+
+| 场景 | 阅读 |
+|------|------|
+| Task 拆解质量评估 | `docs/pm-practices/invest.md` |
+| Sprint 机制和容量规划 | `docs/pm-practices/scrum.md` |
+| done 前检查清单 | `docs/pm-practices/dod-checklist.md` |
+| commit 格式规范 | `docs/pm-practices/conventional-commits.md` |
+| 需求模糊需要价值观引导 | `docs/pm-practices/agile-principles.md` |
+| 完整 CLI 命令参考 | `references/commands.md` |
