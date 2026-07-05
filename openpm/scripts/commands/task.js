@@ -6,7 +6,21 @@ const { getOpenpmDir } = require('../lib/config');
 function taskCommand(action, args, cwd) {
   const openpmDir = getOpenpmDir(cwd);
   switch (action) {
-    case 'create': return createTask(openpmDir, args);
+    case 'create': {
+      if (args.batch) {
+        try {
+          const tasksData = JSON.parse(args.batch);
+          const results = [];
+          for (const taskArgs of tasksData) {
+            results.push(createTask(openpmDir, taskArgs));
+          }
+          return { ok: true, tasks: results.map(function(r) { return r.task; }), count: results.length };
+        } catch (e) {
+          return { ok: false, error: '批量创建失败：JSON 解析错误 - ' + e.message };
+        }
+      }
+      return createTask(openpmDir, args);
+    }
     case 'list': return listTasks(openpmDir, args);
     case 'show': return showTask(openpmDir, args);
     case 'start': return startTask(openpmDir, args);
