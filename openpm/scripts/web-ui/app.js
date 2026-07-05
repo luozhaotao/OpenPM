@@ -1,8 +1,38 @@
 // OpenPM Web Dashboard SPA
+
+// 术语映射 — 单一数据源，所有页面统一引用
+window.LABELS = {
+  status: {
+    todo: '待办',
+    in_progress: '进行中',
+    done: '已完成'
+  },
+  type: {
+    story: '需求',
+    task: '开发任务',
+    bug: '缺陷'
+  },
+  priority: {
+    high: '高',
+    medium: '中',
+    low: '低'
+  },
+  sprint_status: {
+    plan: '规划中',
+    active: '进行中',
+    done: '已完成'
+  },
+  milestone_status: {
+    upcoming: '计划中',
+    current: '当前',
+    done: '已完成'
+  }
+};
+
 var pages = {
   kanban: { title: '看板', file: 'kanban.html' },
-  sprint: { title: 'Sprint', file: 'sprint.html' },
-  'epic-tree': { title: 'Epic 树', file: 'epic-tree.html' },
+  sprint: { title: '迭代', file: 'sprint.html' },
+  'epic-tree': { title: '专题树', file: 'epic-tree.html' },
   timeline: { title: '时间线', file: 'timeline.html' },
   worklog: { title: '工作日志', file: 'worklog.html' },
 };
