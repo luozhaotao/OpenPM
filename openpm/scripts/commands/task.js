@@ -64,6 +64,20 @@ function updateTask(openpmDir, args) {
   const filePath = path.join(openpmDir, 'tasks', `${args.id}.md`);
   try {
     const { frontmatter, body } = parseMarkdown(filePath);
+
+    // 依赖校验：标记 done 前检查 depends_on 是否全部完成
+    if (args.status === 'done' && frontmatter.depends_on && frontmatter.depends_on.length > 0) {
+      const tasksDir = path.join(openpmDir, 'tasks');
+      const allTasks = readAll(tasksDir);
+      const pending = frontmatter.depends_on.filter(function(depId) {
+        var dep = allTasks.find(function(t) { return t.id === depId; });
+        return !dep || dep.status !== 'done';
+      });
+      if (pending.length > 0) {
+        return { ok: false, error: '依赖未完成，不能标记为 done。未完成的依赖: ' + pending.join(', ') };
+      }
+    }
+
     const updatable = ['title', 'status', 'priority', 'type', 'sprint', 'epic'];
     for (const key of updatable) {
       if (args[key] !== undefined) frontmatter[key] = args[key];
