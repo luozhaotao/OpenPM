@@ -31,7 +31,6 @@ async function main() {
       case 'task': result = require('./commands/task')(action, args, cwd); break;
       case 'sprint': result = require('./commands/sprint')(action, args, cwd); break;
       case 'epic': result = require('./commands/epic')(action, args, cwd); break;
-      case 'milestone': result = require('./commands/milestone')(action, args, cwd); break;
       case 'log': result = require('./commands/log')(action, args, cwd); break;
       case 'summary': result = require('./commands/summary')(args, cwd); break;
       case 'web': {

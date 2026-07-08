@@ -1,7 +1,6 @@
 const taskCommand = require('../commands/task');
 const sprintCommand = require('../commands/sprint');
 const epicCommand = require('../commands/epic');
-const milestoneCommand = require('../commands/milestone');
 const logCommand = require('../commands/log');
 const summaryCommand = require('../commands/summary');
 const { readConfig, getOpenpmDir } = require('../lib/config');
@@ -32,9 +31,7 @@ function handleApi(pathname, cwd) {
     const id = pathname.split('/').pop();
     return epicCommand('show', { id }, cwd);
   };
-  if (pathname === '/api/milestones') return () => milestoneCommand('list', {}, cwd);
   if (pathname === '/api/logs') return () => logCommand('list', {}, cwd);
-  if (pathname === '/api/logs/today') return () => logCommand('today', {}, cwd);
   if (pathname === '/api/stats') return () => {
     const tasks = taskCommand('list', {}, cwd);
     const sprints = sprintCommand('list', {}, cwd);

@@ -10,7 +10,7 @@ function initCommand(cwd) {
   }
 
   // 创建目录结构
-  const dirs = ['tasks', 'sprints', 'epics', 'milestones', 'logs'];
+  const dirs = ['tasks', 'sprints', 'epics', 'logs'];
   for (const d of dirs) {
     fs.mkdirSync(path.join(openpmDir, d), { recursive: true });
   }
