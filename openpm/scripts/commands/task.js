@@ -33,15 +33,12 @@ function taskCommand(action, args, cwd) {
 function createTask(openpmDir, args) {
   const tasksDir = path.join(openpmDir, 'tasks');
   const id = nextTaskId(openpmDir);
-  const now = new Date().toISOString().split('T')[0];
 
   const frontmatter = {
     id, title: args.title || 'Untitled',
     status: args.status || 'todo',
     priority: args.priority || 'medium',
     type: args.type || 'task',
-    created: now,
-    updated: now,
   };
   if (args.sprint) frontmatter.sprint = args.sprint;
   if (args.epic) frontmatter.epic = args.epic;
@@ -70,7 +67,6 @@ function startTask(openpmDir, args) {
 
     // 标记 in_progress
     frontmatter.status = 'in_progress';
-    frontmatter.updated = new Date().toISOString().split('T')[0];
     writeMarkdown(filePath, frontmatter, body);
 
     return {
@@ -135,7 +131,6 @@ function updateTask(openpmDir, args) {
     if (args.ac !== undefined) {
       frontmatter.ac = args.ac ? args.ac.split(';') : [];
     }
-    frontmatter.updated = new Date().toISOString().split('T')[0];
     writeMarkdown(filePath, frontmatter, body);
     return { ok: true, task: frontmatter };
   } catch {

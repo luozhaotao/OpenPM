@@ -12,8 +12,6 @@ type: {{type}}
   - {{.}}{{/depends_on}}{{/depends_on}}
 {{#ac}}ac:{{#ac}}
   - "{{.}}"{{/ac}}{{/ac}}
-created: "{{created}}"
-updated: "{{updated}}"
 ---
 
 {{description}}
