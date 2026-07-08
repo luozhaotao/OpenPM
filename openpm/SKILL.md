@@ -1,6 +1,6 @@
 ---
 name: openpm
-description: AI Agent 敏捷项目管理助手。当用户提到任何项目管理相关内容时必须激活——包括但不限于：任务、待办、Task、Sprint、迭代、Epic、进度、工作日志、验收标准、需求拆解、Scrum、敏捷。也适用于日常对话式场景："今天做了什么""接下来做什么""项目进展如何""规划下个迭代""关闭这个 Sprint""还剩多少任务"。Agent 以执行者+导航员双重角色，通过 CLI 操作 .openpm/ 中的 Task/Sprint/Epic/Milestone/Log 实体，覆盖需求定义→迭代规划→执行→复盘全流程。
+description: AI Agent 敏捷项目管理助手。当用户提到任何项目管理相关内容时必须激活——包括但不限于：任务、待办、Task、Sprint、迭代、Epic、进度、工作日志、验收标准、需求拆解、Scrum、敏捷。也适用于日常对话式场景："今天做了什么""接下来做什么""项目进展如何""规划下个迭代""关闭这个 Sprint""还剩多少任务"。Agent 以执行者+导航员双重角色，通过 CLI 操作 .openpm/ 中的 Task/Sprint/Epic/Log 实体，覆盖需求定义→迭代规划→执行→复盘全流程。
 version: "1.0.0"
 license: MIT
 metadata:
@@ -120,20 +120,20 @@ node ${SKILL_DIR}/scripts/cli.js sprint list   # 检查是否有活跃 Sprint (s
    - 容量：建议 5-12 个 Task
    - 依赖：若 A 依赖 B，则 B 必须在同一或更早 Sprint
 
-4. 创建 Sprint：
+3. 创建 Sprint：
    ```bash
     node ${SKILL_DIR}/scripts/cli.js sprint create \
       --name "Sprint 1" \
       --goal "完成用户认证基础功能"
    ```
 
-5. 逐个关联 Task 到 Sprint：
+4. 逐个关联 Task 到 Sprint：
    ```bash
    node ${SKILL_DIR}/scripts/cli.js task update task-001 --sprint sprint-1
    node ${SKILL_DIR}/scripts/cli.js task update task-002 --sprint sprint-1
    ```
 
-6. **等待用户明确确认后**，激活 Sprint：
+5. **等待用户明确确认后**，激活 Sprint：
    ```bash
    node ${SKILL_DIR}/scripts/cli.js sprint start --id sprint-1
    ```
@@ -195,12 +195,10 @@ node ${SKILL_DIR}/scripts/cli.js sprint list   # 检查是否有活跃 Sprint (s
 > "task-003 被阻塞——邮件服务未配置。需要我创建新 Task 处理邮件配置吗？"
 >
 > "今日完成：登录、注册。进行中：首页。明天继续。"
->
-
 
 ### 日常结束时
 - 确保所有完成的 Task 已 `update --status done`
-- 执行 `log today` 记录当天工作
+- 执行 `log create --sprint <id> --event <type>` 记录关键事件
 - 告诉用户今天的进展
 
 > **参考**：标记 done 前阅读 `docs/pm-practices/dod-checklist.md` 逐项检查；编码时参考 `docs/pm-practices/conventional-commits.md` 的 commit 格式。
@@ -238,7 +236,7 @@ node ${SKILL_DIR}/scripts/cli.js sprint list   # 检查是否有活跃 Sprint (s
 > "确认关闭 Sprint 1 吗？关闭后会生成总结并迁移未完成任务。"
 
 ### 🛑 决策点
-用户确认 Sprint 关闭、遗留 Task 去向、Milestone 是否需要调整。
+用户确认 Sprint 关闭和遗留 Task 去向。
 
 ---
 
