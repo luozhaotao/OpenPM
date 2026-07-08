@@ -19,9 +19,23 @@ metadata:
 
 用户发出任何项目管理相关指令时激活本 skill。
 
+## CLI 路径约定
+
+本 skill 所有 CLI 命令使用 `${SKILL_DIR}` 作为 skill 根目录占位符。
+Agent 执行时将 `${SKILL_DIR}` 替换为本 SKILL.md 文件所在目录的绝对路径。
+
+例如，若 SKILL.md 位于 `/workspace/openpm/SKILL.md`，则：
+```bash
+node ${SKILL_DIR}/scripts/cli.js task list
+```
+等价于：
+```bash
+node /workspace/openpm/scripts/cli.js task list
+```
+
 ## 核心约束
 
-- **只用 CLI，不碰文件**：创建/修改实体必须通过 `node openpm/scripts/cli.js` 命令
+- **只用 CLI，不碰文件**：创建/修改实体必须通过 `node ${SKILL_DIR}/scripts/cli.js` 命令
 - **关键决策等待用户确认**：Sprint 启动、Sprint 关闭必须用户明确同意后才能执行
 - **每个 Task 完成后立即更新状态**：`task update <id> --status done`
 - **Web 仪表盘（可选）**：`openpm web [--port N]`
@@ -40,9 +54,9 @@ Sprint 到期 + 有活跃     → 阶段 4：验收复盘
 判断命令：
 
 ```bash
-node openpm/scripts/cli.js epic list     # 检查是否有 Epic
-node openpm/scripts/cli.js task list     # 检查是否有 Task
-node openpm/scripts/cli.js sprint list   # 检查是否有活跃 Sprint (status=active)
+node ${SKILL_DIR}/scripts/cli.js epic list     # 检查是否有 Epic
+node ${SKILL_DIR}/scripts/cli.js task list     # 检查是否有 Task
+node ${SKILL_DIR}/scripts/cli.js sprint list   # 检查是否有活跃 Sprint (status=active)
 ```
 
 判断后，**主动告诉用户当前处于哪个阶段**，并引导下一步。
@@ -58,7 +72,7 @@ node openpm/scripts/cli.js sprint list   # 检查是否有活跃 Sprint (status=
 
 1. 判断是否需要新建 Epic。如果需要：
    ```bash
-   node openpm/scripts/cli.js epic create --title "用户描述的大方向"
+   node ${SKILL_DIR}/scripts/cli.js epic create --title "用户描述的大方向"
    ```
    如果已有相关 Epic，展示列表让用户选择归属。
 
@@ -66,7 +80,7 @@ node openpm/scripts/cli.js sprint list   # 检查是否有活跃 Sprint (status=
 
 3. 逐个创建 Task（每个 Task 关联 Epic）：
    ```bash
-   node openpm/scripts/cli.js task create \
+   node ${SKILL_DIR}/scripts/cli.js task create \
      --title "登录功能" \
      --status todo \
      --priority high \
@@ -77,7 +91,7 @@ node openpm/scripts/cli.js sprint list   # 检查是否有活跃 Sprint (status=
 
 4. 若用户设定了硬死线（如"8月1日上线"），创建 Milestone：
    ```bash
-   node openpm/scripts/cli.js milestone create --name "MVP v0.1" --date 2026-08-01
+   node ${SKILL_DIR}/scripts/cli.js milestone create --name "MVP v0.1" --date 2026-08-01
    ```
 
 ### 引导话术
@@ -104,12 +118,12 @@ node openpm/scripts/cli.js sprint list   # 检查是否有活跃 Sprint (status=
 
 1. 展示所有待规划 Task（status=todo 且未分配 Sprint），按 Epic 分组：
    ```bash
-   node openpm/scripts/cli.js task list --status todo
+   node ${SKILL_DIR}/scripts/cli.js task list --status todo
    ```
 
 2. 检查即将到来的 Milestone，提示哪些 Epic 有紧迫的截止日期：
    ```bash
-   node openpm/scripts/cli.js milestone list
+   node ${SKILL_DIR}/scripts/cli.js milestone list
    ```
 
 3. 根据优先级和依赖关系建议 Sprint 内容。检查：
@@ -118,7 +132,7 @@ node openpm/scripts/cli.js sprint list   # 检查是否有活跃 Sprint (status=
 
 4. 创建 Sprint：
    ```bash
-   node openpm/scripts/cli.js sprint create \
+   node ${SKILL_DIR}/scripts/cli.js sprint create \
      --name "Sprint 1" \
      --goal "完成用户认证基础功能" \
      --start 2026-07-01 \
@@ -127,13 +141,13 @@ node openpm/scripts/cli.js sprint list   # 检查是否有活跃 Sprint (status=
 
 5. 逐个关联 Task 到 Sprint：
    ```bash
-   node openpm/scripts/cli.js task update task-001 --sprint sprint-1
-   node openpm/scripts/cli.js task update task-002 --sprint sprint-1
+   node ${SKILL_DIR}/scripts/cli.js task update task-001 --sprint sprint-1
+   node ${SKILL_DIR}/scripts/cli.js task update task-002 --sprint sprint-1
    ```
 
 6. **等待用户明确确认后**，激活 Sprint：
    ```bash
-   node openpm/scripts/cli.js sprint start --id sprint-1
+   node ${SKILL_DIR}/scripts/cli.js sprint start --id sprint-1
    ```
 
 ### 引导话术
@@ -162,17 +176,17 @@ node openpm/scripts/cli.js sprint list   # 检查是否有活跃 Sprint (status=
 
 1. 查看待办：
    ```bash
-   node openpm/scripts/cli.js task list --sprint sprint-1 --status todo
+   node ${SKILL_DIR}/scripts/cli.js task list --sprint sprint-1 --status todo
    ```
 
 2. 读取验收标准：
    ```bash
-   node openpm/scripts/cli.js task show task-001
+   node ${SKILL_DIR}/scripts/cli.js task show task-001
    ```
 
 3. 标记开始（使用 start 复合命令）：
    ```bash
-   node openpm/scripts/cli.js task start task-001
+   node ${SKILL_DIR}/scripts/cli.js task start task-001
    ```
    此命令自动完成：验证依赖 → 读取 AC → 更新状态为 in_progress
 
@@ -180,12 +194,12 @@ node openpm/scripts/cli.js sprint list   # 检查是否有活跃 Sprint (status=
 
 5. 完成后标记 done（CLI 自动校验依赖）：
    ```bash
-   node openpm/scripts/cli.js task update task-001 --status done
+   node ${SKILL_DIR}/scripts/cli.js task update task-001 --status done
    ```
 
 6. 记录工作日志：
    ```bash
-   node openpm/scripts/cli.js log today --summary "实现登录功能" --tasks "task-001:done"
+   node ${SKILL_DIR}/scripts/cli.js log today --summary "实现登录功能" --tasks "task-001:done"
    ```
 
 ### 引导话术
@@ -216,8 +230,8 @@ node openpm/scripts/cli.js sprint list   # 检查是否有活跃 Sprint (status=
 
 1. 检查遗留 Task：
    ```bash
-   node openpm/scripts/cli.js task list --sprint sprint-1 --status todo
-   node openpm/scripts/cli.js task list --sprint sprint-1 --status in_progress
+   node ${SKILL_DIR}/scripts/cli.js task list --sprint sprint-1 --status todo
+   node ${SKILL_DIR}/scripts/cli.js task list --sprint sprint-1 --status in_progress
    ```
 
 2. 展示完成情况（done/total，完成率）。
@@ -226,13 +240,13 @@ node openpm/scripts/cli.js sprint list   # 检查是否有活跃 Sprint (status=
 
 4. 检查 Milestone 进展：
    ```bash
-   node openpm/scripts/cli.js milestone list
+   node ${SKILL_DIR}/scripts/cli.js milestone list
    ```
    标记每个 Milestone 的状态（on_track / at_risk / overdue）。
 
 5. **等待用户确认后**，关闭 Sprint：
    ```bash
-   node openpm/scripts/cli.js sprint close sprint-1
+   node ${SKILL_DIR}/scripts/cli.js sprint close sprint-1
    ```
 
 ### 引导话术
@@ -269,35 +283,35 @@ Sprint 字段：`id`, `name`, `goal`, `status`, `start_date`, `end_date`
 常用命令速查。完整参考见 `references/commands.md`。
 
 ```bash
-node openpm/scripts/cli.js <entity> <action> [--flags]
+node ${SKILL_DIR}/scripts/cli.js <entity> <action> [--flags]
 ```
 
 ### 常用操作
 
 ```bash
 # 查看状态
-node openpm/scripts/cli.js task list [--sprint sprint-x] [--status todo|in_progress|done]
-node openpm/scripts/cli.js sprint list
-node openpm/scripts/cli.js epic list
+node ${SKILL_DIR}/scripts/cli.js task list [--sprint sprint-x] [--status todo|in_progress|done]
+node ${SKILL_DIR}/scripts/cli.js sprint list
+node ${SKILL_DIR}/scripts/cli.js epic list
 
 # 创建实体
-node openpm/scripts/cli.js task create --title "..." --status todo --priority medium --type task [--epic epic-x]
-node openpm/scripts/cli.js sprint create --name "..." --goal "..." --start YYYY-MM-DD --end YYYY-MM-DD
-node openpm/scripts/cli.js epic create --title "..."
+node ${SKILL_DIR}/scripts/cli.js task create --title "..." --status todo --priority medium --type task [--epic epic-x]
+node ${SKILL_DIR}/scripts/cli.js sprint create --name "..." --goal "..." --start YYYY-MM-DD --end YYYY-MM-DD
+node ${SKILL_DIR}/scripts/cli.js epic create --title "..."
 
 # 状态流转
-node openpm/scripts/cli.js task start <task-id>        # 验证依赖 → 读 AC → 标记 in_progress
-node openpm/scripts/cli.js task update <task-id> --status done
+node ${SKILL_DIR}/scripts/cli.js task start <task-id>        # 验证依赖 → 读 AC → 标记 in_progress
+node ${SKILL_DIR}/scripts/cli.js task update <task-id> --status done
 
 # Sprint 生命周期
-node openpm/scripts/cli.js sprint start --id sprint-1   # 🛑 需用户确认
-node openpm/scripts/cli.js sprint close sprint-1        # 🛑 需用户确认
+node ${SKILL_DIR}/scripts/cli.js sprint start --id sprint-1   # 🛑 需用户确认
+node ${SKILL_DIR}/scripts/cli.js sprint close sprint-1        # 🛑 需用户确认
 
 # 日常记录
-node openpm/scripts/cli.js log today --summary "..." --tasks "task-001:done"
+node ${SKILL_DIR}/scripts/cli.js log today --summary "..." --tasks "task-001:done"
 
 # 仪表盘
-node openpm/scripts/cli.js web [--port 23214]
+node ${SKILL_DIR}/scripts/cli.js web [--port 23214]
 ```
 
 ## 工程实践

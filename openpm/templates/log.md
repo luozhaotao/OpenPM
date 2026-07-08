@@ -1,4 +1,4 @@
-<!-- 字段参考，禁止复制。请用 CLI: node openpm/scripts/cli.js log today -->
+<!-- 字段参考，禁止复制。请用 CLI: node ${SKILL_DIR}/scripts/cli.js log today -->
 
 ---
 date: "{{date}}"

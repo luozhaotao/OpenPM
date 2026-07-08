@@ -1,4 +1,4 @@
-<!-- 字段参考，禁止复制。请用 CLI: node openpm/scripts/cli.js task create -->
+<!-- 字段参考，禁止复制。请用 CLI: node ${SKILL_DIR}/scripts/cli.js task create -->
 
 ---
 id: "{{id}}"
