@@ -2,6 +2,9 @@
 
 > 来源：*The Scrum Guide* — Ken Schwaber & Jeff Sutherland (2020)
 > 本文档摘录 Scrum 框架的核心内容，供 AI Agent 在执行项目管理时正确应用。
+>
+> **注意：** 以下 Scrum 指南中的时间约束（Sprint 时长、仪式时长等）仅供人类团队参考。
+> OpenPM 面向 AI Agent 使用，Sprint 由 Task 完成度驱动，不受时间限制。
 
 ---
 

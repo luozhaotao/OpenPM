@@ -29,7 +29,7 @@ node ${SKILL_DIR}/scripts/cli.js task delete <task-id>
 ## Sprint
 
 ```bash
-node ${SKILL_DIR}/scripts/cli.js sprint create --name "Sprint 1" --goal "..." --start 2026-07-01 --end 2026-07-14
+node ${SKILL_DIR}/scripts/cli.js sprint create --name "Sprint 1" --goal "..."
 node ${SKILL_DIR}/scripts/cli.js sprint list
 node ${SKILL_DIR}/scripts/cli.js sprint show <sprint-id>
 node ${SKILL_DIR}/scripts/cli.js sprint start --id sprint-1   # 激活 Sprint (plan → active)
@@ -48,22 +48,12 @@ node ${SKILL_DIR}/scripts/cli.js epic update <epic-id> --title "..." --status in
 node ${SKILL_DIR}/scripts/cli.js epic delete <epic-id> [--force]
 ```
 
-## Milestone
-
-```bash
-node ${SKILL_DIR}/scripts/cli.js milestone create --name "MVP v0.1" --date 2026-08-01
-node ${SKILL_DIR}/scripts/cli.js milestone list
-node ${SKILL_DIR}/scripts/cli.js milestone show <ms-id>
-node ${SKILL_DIR}/scripts/cli.js milestone update <ms-id> --name "..." --date ... --status current
-node ${SKILL_DIR}/scripts/cli.js milestone delete <ms-id>
-```
-
 ## Log
 
 ```bash
-node ${SKILL_DIR}/scripts/cli.js log today [--summary "..."] [--tasks "task-001:done,task-002:in_progress"]
-node ${SKILL_DIR}/scripts/cli.js log show <date>              # 读取指定日期日志
-node ${SKILL_DIR}/scripts/cli.js log list                     # 列出所有日志
+node ${SKILL_DIR}/scripts/cli.js log create --sprint <id> --event <type> --summary "..."
+node ${SKILL_DIR}/scripts/cli.js log list [--sprint <id>]
+node ${SKILL_DIR}/scripts/cli.js log show <log-id>
 ```
 
 ## Summary & Web
