@@ -27,15 +27,4 @@ function nextEpicId() {
   const id = 'epic-' + Math.random().toString(36).substring(2, 8);
   return id;
 }
-
-function nextMilestoneId(openpmDir) {
-  const files = listFiles(path.join(openpmDir, 'milestones'));
-  const nums = files.map(f => {
-    const name = path.basename(f, '.md');
-    return parseInt(name.replace('ms-', ''), 10) || 0;
-  });
-  const max = nums.length > 0 ? Math.max(...nums) : 0;
-  return `ms-${max + 1}`;
-}
-
-module.exports = { nextTaskId, nextSprintId, nextEpicId, nextMilestoneId };
+module.exports = { nextTaskId, nextSprintId, nextEpicId };
