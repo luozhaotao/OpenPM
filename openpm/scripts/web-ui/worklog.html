@@ -1,26 +1,22 @@
-<style>.log-entry { background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px } .log-date { font-weight:600;font-size:14px } .log-body { font-size:12px;color:var(--text-secondary);margin-top:8px;line-height:1.6 }</style>
-<div style="padding:20px;display:flex;gap:20px">
-  <div style="flex:1.2" id="log-entries"></div>
-  <div style="flex:0.8;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px">
-    <h3 style="font-size:12px;font-weight:600;margin-bottom:12px">今日状态</h3>
-    <div id="today-log"></div>
-  </div>
+<style>.log-entry { background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px } .log-event { font-weight:600;font-size:13px } .log-sprint { font-size:11px;color:var(--primary);margin-left:6px } .log-body { font-size:12px;color:var(--text-secondary);margin-top:8px;line-height:1.6;white-space:pre-wrap }</style>
+<div style="padding:20px">
+  <h2 style="font-size:13px;font-weight:600;margin-bottom:12px">事件日志</h2>
+  <div id="log-entries"></div>
 </div>
 <script>
 async function loadWorklog() {
   var logs = await api('logs');
-  var today = await api('logs/today');
   var list = logs.logs || [];
-  var html = '<h2 style="font-size:13px;font-weight:600;margin-bottom:12px">工作记录</h2>';
+  var sprints = await api('sprints');
+  var sprintMap = {};
+  (sprints.sprints || []).forEach(function(s) { sprintMap[s.id] = s.name; });
+  var html = '';
   for (var i = 0; i < list.length; i++) {
     var l = list[i];
-    html += '<div class="log-entry"><div class="log-date">' + l.date + '</div><div class="log-body">任务: ' + (l.tasks ? l.tasks.join(', ') : '无') + '</div></div>';
+    var sprintLabel = l.sprint ? '<span class="log-sprint">[' + (sprintMap[l.sprint] || l.sprint) + ']</span>' : '';
+    html += '<div class="log-entry"><div class="log-event">' + (l.event || 'general') + sprintLabel + '</div><div class="log-body">' + (l.body || '') + '</div></div>';
   }
   document.getElementById('log-entries').innerHTML = html || '<p style="color:var(--text-muted)">暂无日志</p>';
-  var t = today.log || {};
-  document.getElementById('today-log').innerHTML = t.empty
-    ? '<p style="color:var(--text-muted)">今日尚无记录</p>'
-    : '<p>日期: <strong>' + (t.date || '') + '</strong></p><pre style="font-size:12px;color:var(--text-secondary);white-space:pre-wrap;margin-top:8px">' + (t.body || '') + '</pre>';
 }
 window.initPage = function(p) { if (p === 'worklog') loadWorklog(); };
 window.refreshPage = function() { if (currentPage === 'worklog') loadWorklog(); };

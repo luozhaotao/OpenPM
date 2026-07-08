@@ -22,18 +22,13 @@ window.LABELS = {
     active: '进行中',
     done: '已完成'
   },
-  milestone_status: {
-    upcoming: '计划中',
-    current: '当前',
-    done: '已完成'
-  }
+
 };
 
 var pages = {
   kanban: { title: '看板', file: 'kanban.html' },
   sprint: { title: '迭代', file: 'sprint.html' },
   'epic-tree': { title: '专题树', file: 'epic-tree.html' },
-  timeline: { title: '时间线', file: 'timeline.html' },
   worklog: { title: '工作日志', file: 'worklog.html' },
 };
 

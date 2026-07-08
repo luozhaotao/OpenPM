@@ -20,7 +20,7 @@ async function loadSprint() {
     html += '<div class="sprint-item' + (cur ? ' current' : '') + '">' +
       '<span class="sprint-dot ' + s.status + '"></span>' +
       '<div class="sprint-info"><div class="sprint-name">' + s.name + '</div>' +
-      '<div class="sprint-meta">' + s.start_date + ' — ' + s.end_date + ' · ' + (s.goal || '') + '</div></div>' +
+      '<div class="sprint-meta">' + (s.goal || '') + '</div></div>' +
       '<span style="font-size:12px;color:var(--text-secondary)">' + (L.sprint_status[s.status] || s.status) + '</span></div>';
   }
   document.getElementById('sprint-list').innerHTML = html || '<p style="color:var(--text-muted)">暂无迭代</p>';
