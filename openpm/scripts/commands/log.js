@@ -1,6 +1,6 @@
 const path = require('path');
 const fs = require('fs');
-const { parseMarkdown, writeMarkdown, readAll, listFiles } = require('../lib/files');
+const { parseMarkdown, writeMarkdown, listFiles } = require('../lib/files');
 const { getOpenpmDir } = require('../lib/config');
 
 function logCommand(action, args, cwd) {
@@ -28,7 +28,7 @@ function logCommand(action, args, cwd) {
   if (action === 'list') {
     const logFiles = listFiles(logsDir);
     const logs = logFiles.map(function(f) {
-      var parsed = parseMarkdown(f);
+      const parsed = parseMarkdown(f);
       return Object.assign({}, parsed.frontmatter, { body: parsed.body });
     });
     if (args.sprint) {
