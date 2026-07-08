@@ -96,29 +96,28 @@ function derivePhase(stats, sprints, epics) {
   var hasActiveSprint = sprints.some(function(s) {
     return s.status === 'active';
   });
-  var hasExpiredSprint = sprints.some(function(s) {
-    return s.status === 'active' && new Date(s.end_date) < new Date();
-  });
-
-  if (hasExpiredSprint) return 4;       // 验收复盘
-  if (hasActiveSprint)  return 3;       // 执行迭代
-  if (stats.totalTasks > 0) return 2;   // 规划迭代
-  return 1;                             // 定义需求
+  if (hasActiveSprint && stats.activeSprint) {
+    var sprintTaskCount = (stats.activeSprintTasks || 0);
+    var doneInSprint = (stats.activeSprintDone || 0);
+    if (sprintTaskCount > 0 && doneInSprint >= sprintTaskCount) return 4;
+    return 3;
+  }
+  if (stats.totalTasks > 0) return 2;
+  return 1;
 }
 
 // 审批提醒推导
 function deriveAlerts(stats, sprints) {
   var alerts = [];
-
-  // Sprint 待复盘（最紧迫）
-  var expiredSprints = sprints.filter(function(s) {
-    return s.status === 'active' && new Date(s.end_date) < new Date();
+  var activeSprint = sprints.find(function(s) {
+    return s.status === 'active';
   });
-  if (expiredSprints.length > 0) {
-    alerts.push({ text: "Sprint '" + expiredSprints[0].name + "' 待复盘", priority: 1 });
+
+  if (activeSprint && stats.activeSprintTasks > 0 &&
+      stats.activeSprintDone >= stats.activeSprintTasks) {
+    alerts.push({ text: "Sprint '" + activeSprint.name + "' 所有任务已完成，待复盘", priority: 1 });
   }
 
-  // Sprint 待启动
   var planSprints = sprints.filter(function(s) {
     return s.status === 'plan';
   });
@@ -126,12 +125,10 @@ function deriveAlerts(stats, sprints) {
     alerts.push({ text: "Sprint '" + planSprints[0].name + "' 待启动", priority: 2 });
   }
 
-  // Task 待分配 Sprint
   if (stats.todoTasks > 0) {
     alerts.push({ text: stats.todoTasks + ' 个 Task 待分配 Sprint', priority: 3 });
   }
 
-  // 最多显示 2 个
   return alerts.slice(0, 2);
 }
 
