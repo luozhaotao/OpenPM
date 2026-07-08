@@ -10,7 +10,7 @@ function sprintCommand(action, args, cwd) {
   switch (action) {
     case 'create': {
       const id = nextSprintId(openpmDir);
-      const fm = { id, name: args.name || 'Untitled Sprint', goal: args.goal || '', status: 'plan', start_date: args.start || '', end_date: args.end || '' };
+      const fm = { id, name: args.name || 'Untitled Sprint', goal: args.goal || '', status: 'plan' };
       writeMarkdown(path.join(sprintsDir, id + '.md'), fm, '');
       return { ok: true, sprint: fm };
     }
@@ -79,7 +79,7 @@ function sprintCommand(action, args, cwd) {
       const fp = path.join(sprintsDir, args.id + '.md');
       try {
         const { frontmatter, body } = parseMarkdown(fp);
-        const updatable = ['name', 'goal', 'start_date', 'end_date'];
+        const updatable = ['name', 'goal'];
         for (const key of updatable) {
           if (args[key] !== undefined) frontmatter[key] = args[key];
         }
