@@ -1,10 +1,11 @@
-<!-- 字段参考，禁止复制。请用 CLI: node ${SKILL_DIR}/scripts/cli.js log today -->
+<!-- 字段参考，禁止复制。请用 CLI: node ${SKILL_DIR}/scripts/cli.js log create -->
 
 ---
-date: "{{date}}"
-tasks: []
+id: "{{id}}"
+sprint: "{{sprint}}"
+event: "{{event}}"
 ---
 
-## 今日摘要
+{{summary}}
 
 ## 阻塞项
